@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+dist/
+build/
+.next/
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Env / secrets
+.env
+.env.local
+*.pem
+
+# Models & heavy data
+*.gguf
+models/
+data/uploads/
+data/embeddings/
+
+# IDE / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Logs
+*.log
+npm-debug.log*

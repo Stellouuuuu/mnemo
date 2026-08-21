@@ -46,15 +46,17 @@
 
 Candidats (ordre suggéré une fois le GPU OK) :
 
+- [x] **Mistral 7B** (`mistral:latest`) — **retenu** comme base
 - [ ] Qwen2.5 7B instruct (quantizé via Ollama)
 - [ ] Gemma 2 9B ou variante plus petite si trop lourd
-- [ ] Mistral 7B
 - [ ] Llama 3.1 8B
 - [ ] Fallback CPU : modèle **3B** (ex. Qwen2.5 3B)
 
-**Choix retenu pour v0.1 :** _à décider après fix driver + premier `ollama run`_  
-**Raison :** ________________  
-**Tag Ollama :** ________________
+**Choix retenu pour v0.1 :** `mistral:latest` → modèle custom **`stella:latest`** (Modelfile)  
+**Raison :** déjà installé localement (4.4 Go), create/run OK, bon pour démarrer le chat  
+**Tag Ollama produit :** `stella` / `stella:latest`  
+**Fichier :** `ai-engine/Modelfile`  
+**Note :** le SYSTEM définit l’identité STELLA ; l’identité user sera injectée par l’app (pas en dur dans le Modelfile)
 
 ---
 

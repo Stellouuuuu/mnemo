@@ -11,9 +11,10 @@
 - [x] Roadmap v0.1 → v1.0
 - [x] Cahier d’apprentissage créé (concepts + journal)
 - [x] Fiche machine remplie (`cahier-des-charges/04-contraintes-machine.md`)
-- [ ] Driver NVIDIA réparé (`nvidia-smi` OK) — *fortement recommandé avant v0.1*
-- [ ] Premier modèle candidat choisi pour v0.1
-- [ ] Phase 0 validée explicitement → go v0.1
+- [ ] Driver NVIDIA réparé (`nvidia-smi` OK) — *recommandé, pas bloquant si Mistral tourne*
+- [x] Premier modèle candidat choisi pour v0.1 → `mistral` + custom `stella` (Modelfile)
+- [x] Modelfile testé (`ollama create` / `ollama run`) + poussé
+- [ ] Phase 0 validée explicitement → go scaffold backend/frontend v0.1
 
 ## Critère de sortie
 

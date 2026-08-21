@@ -4,6 +4,59 @@ Les entrées les plus récentes en haut.
 
 ---
 
+## 2026-08-21 — Modelfile Ollama : identité STELLA (poussé)
+
+**Version / phase :** Phase 0 → pont vers v0.1  
+**Commit :** `7945a16` — `feat(ai): define STELLA identity and user context`
+
+**Objectif de la session :**
+- Créer un modèle local personnalisé `stella` à partir de Mistral + prompt système
+
+**Ce que j’ai fait :**
+- Écrit `ai-engine/Modelfile` (`FROM mistral:latest`, temperature 0.7, SYSTEM)
+- `ollama create stella -f ai-engine/Modelfile` → success
+- Testé avec `ollama run stella`
+- Corrigé le prompt : plus d’identité user en dur (« Stellouuu »)
+- Commit + push sur GitHub
+
+**Pourquoi :**
+- Le Modelfile fixe *qui est STELLA* (personnalité, ton, domaines)
+- L’identité de l’utilisateur doit venir de l’**application** (session / profil), pas du modèle partagé
+- Sinon le modèle invente ou mélange « comment m’appeler » / qui est qui
+
+**Ce que j’ai compris :**
+- `ollama create` = calque un nouveau modèle par-dessus un modèle de base + SYSTEM/PARAM
+- `stella:latest` ≠ nouvel entraînement : c’est Mistral + instructions
+- Premier échec `Error: no FROM line` = Modelfile vide / pas encore sauvé
+- `quit` n’est pas la commande de sortie Ollama → utiliser `/bye` ou Ctrl+D
+- Un SYSTEM trop « je connais déjà Stella » fait mal répondre aux questions d’identité user
+
+**Ce qui a marché :**
+- Modèle `stella:latest` listé (4.4 Go, base mistral)
+- Réponses en français, se présente comme STELLA AI locale
+- Après correction : « je ne suppose pas qui tu es »
+
+**Ce qui n’a pas marché (puis corrigé) :**
+- V1 prompt : utilisatrice principale Stella / « Stellouuu » en dur
+- Résultat : confusion sur « comment dois-tu m’appeler ? » (répondait sur son propre nom)
+- Décision : section UTILISATEURS neutre + infos fournies par l’app plus tard
+
+**Commandes utiles :**
+```bash
+ollama create stella -f ai-engine/Modelfile
+ollama list
+ollama run stella
+# sortir : /bye
+```
+
+**Prochaine micro-étape :**
+- Brancher backend → `http://localhost:11434` avec le modèle `stella`
+- Puis UI React (v0.1 Local Chat)
+
+**Temps passé :** session Modelfile + tests + push
+
+---
+
 ## 2026-08-21 — Repo GitHub branché (workflow push par étape)
 
 **Version / phase :** Phase 0

@@ -22,13 +22,20 @@ On **utilise** un modèle OSS, et on **apprend** les bases dans `ai-lab/` (mini 
 
 ---
 
-## Pourquoi Ollama au début ?
+## Pourquoi un Modelfile Ollama ?
 
-- Installation simple
-- Pull de modèles en une commande
-- API HTTP locale facile à brancher depuis Express
+Un Modelfile dit : « prends ce modèle de base + ces paramètres + ce SYSTEM prompt = mon modèle nommé `stella` ».
 
-Plus tard on pourra comparer avec llama.cpp / autres si besoin.
+Ce n’est **pas** un fine-tuning. C’est une configuration réutilisable.
+
+| Dans le Modelfile | Dans l’application (plus tard) |
+|-------------------|--------------------------------|
+| Qui est STELLA | Qui est l’utilisateur connecté |
+| Ton / domaines | Historique de conversation |
+| Temperature, etc. | Mémoire, RAG, outils |
+
+**Leçon apprise :** mettre le surnom de l’utilisatrice dans le SYSTEM a confondu le modèle. L’identité user = contexte applicatif.
+
 
 ---
 

@@ -391,7 +391,14 @@ describe('POST /api/chat/stream', () => {
       yield { type: 'delta', text: 'Bon' };
       yield {
         type: 'done',
-        result: { conversationId: 'c1', messages: [], response: 'Bon' },
+        result: {
+          conversationId: 'c1',
+          messages: [],
+          response: 'Bon',
+          sources: [],
+          toolCalls: [],
+          pendingActions: [],
+        },
       };
     });
     const res = fakeRes();

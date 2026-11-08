@@ -152,3 +152,37 @@ describe('PostgresKnowledgeStore (intégration pgvector)', () => {
     assert.deepEqual(stored[1]!.sources, [source]);
   });
 });
+
+describe('PostgresAuditStore (intégration)', () => {
+  it('journalise les appels d’outils et les rend par utilisateur', async (t) => {
+    const pool = await tryCreateLivePostgresPool();
+    if (!pool) {
+      t.skip('PostgreSQL non disponible');
+      return;
+    }
+    const { PostgresAuditStore } = await import('../src/tools/audit-store.js');
+    const userId = `test-${randomUUID()}-audit`;
+    const other = `test-${randomUUID()}-audit2`;
+    try {
+      for (const id of [userId, other]) {
+        await pool.query('INSERT INTO users (id) VALUES ($1)', [id]);
+      }
+      const store = new PostgresAuditStore(pool);
+      await store.record({ userId, conversationId: null, tool: 'calculator', args: { expression: '1+1' }, status: 'executed' });
+      await store.record({ userId, conversationId: randomUUID(), tool: 'delete_memory', args: { key: 'goal' }, status: 'confirmation_requested', detail: 'Effacer' });
+      await store.record({ userId: other, conversationId: null, tool: 'calculator', args: {}, status: 'executed' });
+
+      const mine = await store.listByUser(userId);
+      assert.equal(mine.length, 2);
+      assert.deepEqual(mine.map((e) => e.status).sort(), ['confirmation_requested', 'executed']);
+      assert.deepEqual(mine.find((e) => e.tool === 'calculator')?.args, { expression: '1+1' });
+
+      await pool.query('DELETE FROM users WHERE id = $1', [userId]);
+      const after = await pool.query('SELECT COUNT(*)::int AS n FROM tool_audit WHERE user_id = $1', [userId]);
+      assert.equal(after.rows[0].n, 0);
+    } finally {
+      await pool.query('DELETE FROM users WHERE id = ANY($1)', [[userId, other]]);
+      await pool.end();
+    }
+  });
+});

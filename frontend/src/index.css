@@ -1531,3 +1531,67 @@ body {
 .chat-sources__snippet {
   overflow-wrap: anywhere;
 }
+
+.pending-actions {
+  margin: 0 var(--mnemo-space-4) var(--mnemo-space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--mnemo-space-2);
+}
+
+.pending-actions__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mnemo-space-3);
+  padding: var(--mnemo-space-2) var(--mnemo-space-3);
+  border: 1px solid var(--mnemo-accent);
+  border-radius: var(--mnemo-radius-md);
+  background: rgb(193 122 74 / 12%);
+  color: var(--mnemo-ink-on-dark);
+}
+
+.pending-actions__text {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  font-size: 0.9rem;
+}
+
+.pending-actions__text span {
+  color: var(--mnemo-ink-on-dark-muted);
+}
+
+.pending-actions__buttons {
+  display: flex;
+  gap: var(--mnemo-space-2);
+  flex-shrink: 0;
+}
+
+.pending-actions__buttons button {
+  border: 1px solid var(--mnemo-border-strong);
+  border-radius: var(--mnemo-radius-pill);
+  background: transparent;
+  color: var(--mnemo-ink-on-dark);
+  padding: 0.3rem 0.8rem;
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.pending-actions__buttons button:first-child {
+  background: var(--mnemo-accent);
+  border-color: var(--mnemo-accent);
+  color: #1f140c;
+}
+
+.pending-actions__buttons button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.chat-tools {
+  margin-top: var(--mnemo-space-2);
+  font-size: 0.8rem;
+  color: var(--mnemo-ink-on-dark-muted);
+}

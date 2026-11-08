@@ -7,12 +7,19 @@ import {
   combineAbortSignals,
   fetchWithTimeout,
 } from '../http/fetch-with-timeout.js';
+import type { ModelToolCall } from '../tools/types.js';
+import type { ModelToolDefinition } from '../tools/runtime.js';
 import type { OllamaChatMessage } from '../types/chat.js';
+
+interface OllamaToolCall {
+  function?: { name?: string; arguments?: unknown };
+}
 
 interface OllamaChatResponse {
   message?: {
     role: string;
     content: string;
+    tool_calls?: OllamaToolCall[];
   };
   error?: string;
 }
@@ -20,6 +27,30 @@ interface OllamaChatResponse {
 export interface ChatModelOptions {
   timeoutMs?: number;
   signal?: AbortSignal;
+  /** Outils proposés au modèle. Il peut en demander, jamais les exécuter lui-même. */
+  tools?: ModelToolDefinition[];
+}
+
+/** Un lot d'appels d'outils demandés par le modèle au cours d'une réponse. */
+export interface ToolCallBatch {
+  toolCalls: ModelToolCall[];
+}
+
+/** Ce que renvoie un tour de modèle avec outils (sans streaming). */
+export interface ModelTurn {
+  text: string;
+  toolCalls: ModelToolCall[];
+}
+
+export type ChatModelTurnClient = (
+  messages: OllamaChatMessage[],
+  options?: ChatModelOptions,
+) => Promise<ModelTurn>;
+
+function readToolCalls(raw: OllamaToolCall[] | undefined): ModelToolCall[] {
+  return (raw ?? [])
+    .filter((call) => typeof call.function?.name === 'string')
+    .map((call) => ({ name: call.function!.name!, arguments: call.function!.arguments }));
 }
 
 export type ChatModelClient = (
@@ -30,7 +61,7 @@ export type ChatModelClient = (
 export type ChatModelStreamClient = (
   messages: OllamaChatMessage[],
   options?: ChatModelOptions,
-) => AsyncGenerator<string, void, undefined>;
+) => AsyncGenerator<string | ToolCallBatch, void, undefined>;
 
 const ollamaSemaphore = new AsyncSemaphore(env.OLLAMA_MAX_CONCURRENT);
 
@@ -64,6 +95,35 @@ export async function chatWithOllama(
   messages: OllamaChatMessage[],
   options?: ChatModelOptions,
 ): Promise<string> {
+  const data = await requestChat(messages, options);
+  const content = data.message?.content;
+
+  if (typeof content !== 'string' || content.trim() === '') {
+    throw new OllamaError('Ollama a renvoyé une réponse vide ou invalide');
+  }
+
+  return capAssistantContent(content, env.CHAT_MAX_MESSAGE_CHARS);
+}
+
+/** Un tour de conversation avec des outils : du texte, des appels d'outils, ou les deux. */
+export async function chatTurnWithOllama(
+  messages: OllamaChatMessage[],
+  options?: ChatModelOptions,
+): Promise<ModelTurn> {
+  const data = await requestChat(messages, options);
+  const toolCalls = readToolCalls(data.message?.tool_calls);
+  const content = data.message?.content ?? '';
+
+  if (toolCalls.length === 0 && content.trim() === '') {
+    throw new OllamaError('Ollama a renvoyé une réponse vide ou invalide');
+  }
+  return { text: capAssistantContent(content, env.CHAT_MAX_MESSAGE_CHARS), toolCalls };
+}
+
+async function requestChat(
+  messages: OllamaChatMessage[],
+  options?: ChatModelOptions,
+): Promise<OllamaChatResponse> {
   const url = `${env.OLLAMA_BASE_URL}/api/chat`;
   const timeoutMs = options?.timeoutMs ?? env.OLLAMA_TIMEOUT_MS;
   const startedAt = Date.now();
@@ -108,6 +168,7 @@ export async function chatWithOllama(
             model: env.OLLAMA_MODEL,
             messages,
             stream: false,
+            ...(options?.tools && options.tools.length > 0 ? { tools: options.tools } : {}),
             options: {
               temperature: env.OLLAMA_TEMPERATURE,
             },
@@ -145,13 +206,7 @@ export async function chatWithOllama(
       throw new OllamaError(`Erreur Ollama HTTP ${response.status}: ${detail}`);
     }
 
-    const content = data.message?.content;
-
-    if (typeof content !== 'string' || content.trim() === '') {
-      throw new OllamaError('Ollama a renvoyé une réponse vide ou invalide');
-    }
-
-    return capAssistantContent(content, env.CHAT_MAX_MESSAGE_CHARS);
+    return data;
   } finally {
     release?.();
     clearTimeout(deadlineTimer);
@@ -159,7 +214,7 @@ export async function chatWithOllama(
 }
 
 interface OllamaStreamChunk {
-  message?: { content?: string };
+  message?: { content?: string; tool_calls?: OllamaToolCall[] };
   error?: string;
   done?: boolean;
 }
@@ -172,7 +227,7 @@ interface OllamaStreamChunk {
 export async function* streamChatWithOllama(
   messages: OllamaChatMessage[],
   options?: ChatModelOptions,
-): AsyncGenerator<string, void, undefined> {
+): AsyncGenerator<string | ToolCallBatch, void, undefined> {
   const timeoutMs = options?.timeoutMs ?? env.OLLAMA_TIMEOUT_MS;
   if (options?.signal?.aborted) {
     throw new FetchAbortedError();
@@ -225,6 +280,7 @@ export async function* streamChatWithOllama(
           model: env.OLLAMA_MODEL,
           messages,
           stream: true,
+          ...(options?.tools && options.tools.length > 0 ? { tools: options.tools } : {}),
           options: { temperature: env.OLLAMA_TEMPERATURE },
         }),
         signal: controller.signal,
@@ -248,9 +304,10 @@ export async function* streamChatWithOllama(
     const maxChars = env.CHAT_MAX_MESSAGE_CHARS;
     let pending = '';
     let emitted = 0;
+    let sawToolCalls = false;
     let finished = false;
 
-    const handleLine = (line: string): string => {
+    const handleLine = (line: string): { text: string; toolCalls: ModelToolCall[] } => {
       let chunk: OllamaStreamChunk;
       try {
         chunk = JSON.parse(line) as OllamaStreamChunk;
@@ -263,7 +320,10 @@ export async function* streamChatWithOllama(
       if (chunk.done) {
         finished = true;
       }
-      return chunk.message?.content ?? '';
+      return {
+        text: chunk.message?.content ?? '',
+        toolCalls: readToolCalls(chunk.message?.tool_calls),
+      };
     };
 
     while (!finished) {
@@ -288,7 +348,12 @@ export async function* streamChatWithOllama(
           continue;
         }
 
-        let text = handleLine(line);
+        const parsed = handleLine(line);
+        if (parsed.toolCalls.length > 0) {
+          sawToolCalls = true;
+          yield { toolCalls: parsed.toolCalls };
+        }
+        let text = parsed.text;
         if (text === '') {
           continue;
         }
@@ -304,7 +369,7 @@ export async function* streamChatWithOllama(
       }
     }
 
-    if (emitted === 0) {
+    if (emitted === 0 && !sawToolCalls) {
       throw new OllamaError('Ollama a renvoyé une réponse vide ou invalide');
     }
   } finally {

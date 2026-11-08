@@ -3,7 +3,7 @@
 Assistant IA personnel **local** — sans API commerciale payante (pas d’OpenAI, Anthropic, etc. pour le cœur du produit).
 
 > **Repo :** [Stellouuuuu/stella-ai](https://github.com/Stellouuuuu/stella-ai)  
-> **Phase actuelle : v0.4 terminée, prochaine étape v0.5 (outils).** Le chat en streaming, les conversations, l'authentification, la mémoire (avec son écran de contrôle) et les réponses appuyées sur vos documents (PDF, texte) fonctionnent.  
+> **Phase actuelle : v0.5, outils (mécanisme terminé, fiabilité du modèle à améliorer).** Le chat en streaming, les conversations, l'authentification, la mémoire (avec son écran de contrôle) et les réponses appuyées sur vos documents (PDF, texte) fonctionnent.  
 > **Workflow :** push sur GitHub dès qu’une étape (checklist) fonctionne.
 
 ---
@@ -124,6 +124,12 @@ DATABASE_URL=... npx tsx eval/hybrid-eval.ts [questions-heldout.json]
 
 Chaque version est scannée avec [AegisAI](https://github.com/Stellouuuuu/aegisai). Premier audit (v0.4) : score de **45 à 74 puis 81 sur 100** après deux correctifs (règles du prompt, garde contre la fuite des instructions internes), l'isolation des documents entre utilisateurs n'ayant montré aucune faille. Détails, limites et ce qui n'a pas été corrigé : [`docs/securite/audit-v0.4.md`](docs/securite/audit-v0.4.md).
 
+## Outils (v0.5)
+
+Le modèle peut demander trois outils : une calculatrice, la recherche dans vos documents, et l'effacement d'un souvenir. **Il ne fait que demander : c'est le serveur qui décide.** Un outil inconnu ou des arguments invalides ne s'exécutent pas, l'identité vient toujours de la session (jamais d'un argument du modèle), et une action sensible reste en attente jusqu'au clic « Autoriser » de l'utilisateur. Tout est journalisé. Une consigne cachée dans un document ne peut donc pas effacer un souvenir : c'est testé.
+
+**Limite mesurée :** avec `mistral` 7B, le choix de l'outil n'est pas fiable (le modèle répond souvent en texte au lieu d'appeler l'outil). Le serveur est sûr quel que soit le modèle, mais l'assistant est peu utile tant qu'il n'est pas remplacé par un modèle qui gère mieux les outils. Détails dans [le journal](docs/apprentissage/journal.md).
+
 ## Prochaine étape
 
-v0.5 : des outils (calcul, lecture de fichiers, recherche dans les documents) appelés par le modèle, avec des permissions et une confirmation pour les actions sensibles. Voir [docs/versions/](docs/versions/).
+Un modèle qui appelle les outils de façon fiable, puis v0.6 (agent : plusieurs outils enchaînés). Voir [docs/versions/](docs/versions/).

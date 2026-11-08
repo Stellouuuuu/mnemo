@@ -8,6 +8,7 @@ import {
 } from '../errors.js';
 import { FetchAbortedError } from '../http/fetch-with-timeout.js';
 import type { ConversationService } from '../services/conversation.service.js';
+import type { PendingAction } from '../tools/types.js';
 
 function parseOptionalConversationId(raw: unknown):
   | { ok: true; conversationId?: string }
@@ -43,6 +44,16 @@ function abortOnDisconnect(res: Response, controller: AbortController): () => vo
   res.on('close', onClose);
   return () => {
     res.removeListener('close', onClose);
+  };
+}
+
+function toActionDto(action: PendingAction) {
+  return {
+    id: action.id,
+    tool: action.tool,
+    summary: action.summary,
+    conversationId: action.conversationId,
+    expiresAt: action.expiresAt.toISOString(),
   };
 }
 
@@ -102,6 +113,8 @@ export function createChatRouter(conversationService: ConversationService): Rout
         messages: result.messages,
         response: result.response,
         sources: result.sources,
+        toolCalls: result.toolCalls,
+        pendingActions: result.pendingActions.map(toActionDto),
       });
     } catch (error) {
       if (error instanceof FetchAbortedError || abortController.signal.aborted) {
@@ -172,12 +185,19 @@ export function createChatRouter(conversationService: ConversationService): Rout
           writeSse(res, 'meta', { conversationId: event.conversationId });
         } else if (event.type === 'sources') {
           writeSse(res, 'sources', { sources: event.sources });
+        } else if (event.type === 'tool') {
+          writeSse(res, 'tool', { tool: event.tool, status: event.status });
+        } else if (event.type === 'confirmation') {
+          writeSse(res, 'confirmation', toActionDto(event.action));
         } else if (event.type === 'replace') {
           writeSse(res, 'replace', { text: event.text });
         } else if (event.type === 'delta') {
           writeSse(res, 'delta', { text: event.text });
         } else {
-          writeSse(res, 'done', event.result);
+          writeSse(res, 'done', {
+            ...event.result,
+            pendingActions: event.result.pendingActions.map(toActionDto),
+          });
         }
       }
       if (started) {

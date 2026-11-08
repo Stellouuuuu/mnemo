@@ -111,6 +111,10 @@ export function ChatMessage({
             <p className="chat-message__content">{message.content}</p>
           )}
 
+          {message.tools && message.tools.length > 0 ? (
+            <p className="chat-tools">Outils utilisés : {message.tools.join(', ')}</p>
+          ) : null}
+
           {message.sources && message.sources.length > 0 ? (
             <ChatSources sources={message.sources} />
           ) : null}

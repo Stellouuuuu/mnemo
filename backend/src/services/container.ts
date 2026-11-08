@@ -16,6 +16,12 @@ import {
   OllamaEmbedder,
   PostgresKnowledgeStore,
 } from '../knowledge/index.js';
+import {
+  InMemoryAuditStore,
+  PostgresAuditStore,
+  ToolRuntime,
+  createTools,
+} from '../tools/index.js';
 import { AuthService } from '../auth/auth.service.js';
 import { PostgresSessionStore } from '../auth/postgres-session-store.js';
 import { env } from '../config/env.js';
@@ -51,6 +57,11 @@ const knowledgeService = new KnowledgeService(
   new OllamaEmbedder(),
 );
 
+const toolAudit = sharedPool ? new PostgresAuditStore(sharedPool) : new InMemoryAuditStore();
+const toolRuntime = env.TOOLS_ENABLED
+  ? new ToolRuntime(createTools({ knowledge: knowledgeService, memory: memoryService }), toolAudit)
+  : null;
+
 export const conversationService = new ConversationService(
   memoryService,
   chatWithOllama,
@@ -58,13 +69,14 @@ export const conversationService = new ConversationService(
   conversationHistoryService,
   streamChatWithOllama,
   knowledgeService,
+  toolRuntime,
 );
 
 export const authService = sharedPool
   ? new AuthService(sharedPool, new PostgresSessionStore(sharedPool))
   : null;
 
-export { memoryService, conversationHistoryService, knowledgeService, sharedPool };
+export { memoryService, conversationHistoryService, knowledgeService, toolAudit, toolRuntime, sharedPool };
 
 export async function closeSharedResources(): Promise<void> {
   if (!sharedPool || poolClosed) {

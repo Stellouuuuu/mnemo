@@ -10,6 +10,7 @@ import { requireAllowedOrigin } from './middleware/require-allowed-origin.js';
 import { createRequireAuth } from './middleware/require-auth.js';
 import { securityHeaders } from './middleware/security-headers.js';
 import { createAuthRouter } from './routes/auth.routes.js';
+import { createActionsRouter } from './routes/actions.routes.js';
 import { createChatRouter } from './routes/chat.routes.js';
 import { createConversationsRouter } from './routes/conversations.routes.js';
 import { createDocumentsRouter } from './routes/documents.routes.js';
@@ -20,6 +21,8 @@ import {
   conversationService,
   knowledgeService,
   memoryService,
+  toolAudit,
+  toolRuntime,
   sharedPool,
 } from './services/container.js';
 import {
@@ -75,6 +78,13 @@ app.use(
 
 app.use('/api/memories', requireAuth, createMemoriesRouter(memoryService));
 app.use('/api/documents', requireAuth, createDocumentsRouter(knowledgeService));
+if (toolRuntime && toolAudit) {
+  app.use(
+    '/api/actions',
+    requireAuth,
+    createActionsRouter(toolRuntime, conversationHistoryService, toolAudit),
+  );
+}
 
 const jsonTooLargeHandler: ErrorRequestHandler = (err, _req, res, next) => {
   if (isEntityTooLarge(err)) {

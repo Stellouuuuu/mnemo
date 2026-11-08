@@ -9,6 +9,7 @@ import type {
   ConversationDetail,
   ConversationSummary,
   ConversationsListResponse,
+  PendingAction,
   SourceRef,
 } from '../types/chat';
 
@@ -136,6 +137,9 @@ export async function sendChatMessage(
 export interface ChatStreamHandlers {
   onMeta?: (conversationId: string) => void;
   onSources?: (sources: SourceRef[]) => void;
+  /** Un outil a été utilisé, refusé ou mis en attente par le serveur. */
+  onTool?: (tool: string, status: 'result' | 'rejected' | 'confirmation') => void;
+  onConfirmation?: (action: PendingAction) => void;
   /** Remplace le texte déjà reçu (réponse bloquée par le serveur). */
   onReplace?: (text: string) => void;
   onDelta: (text: string) => void;
@@ -186,6 +190,11 @@ export async function streamChatMessage(
       handlers.onMeta?.((payload as { conversationId: string }).conversationId);
     } else if (event === 'sources') {
       handlers.onSources?.((payload as { sources: SourceRef[] }).sources);
+    } else if (event === 'tool') {
+      const body = payload as { tool: string; status: 'result' | 'rejected' | 'confirmation' };
+      handlers.onTool?.(body.tool, body.status);
+    } else if (event === 'confirmation') {
+      handlers.onConfirmation?.(payload as PendingAction);
     } else if (event === 'replace') {
       handlers.onReplace?.((payload as { text: string }).text);
     } else if (event === 'delta') {
@@ -239,6 +248,19 @@ export async function deleteConversation(conversationId: string): Promise<void> 
     `/api/conversations/${encodeURIComponent(conversationId)}`,
     { method: 'DELETE' },
   );
+}
+
+export async function listPendingActions(): Promise<PendingAction[]> {
+  const data = await requestJson<{ actions: PendingAction[] }>('/api/actions');
+  return data.actions;
+}
+
+export async function confirmAction(id: string): Promise<void> {
+  await requestJson<unknown>(`/api/actions/${encodeURIComponent(id)}/confirm`, { method: 'POST' });
+}
+
+export async function denyAction(id: string): Promise<void> {
+  await requestJson<void>(`/api/actions/${encodeURIComponent(id)}/deny`, { method: 'POST' });
 }
 
 export async function listDocuments(): Promise<DocumentItem[]> {

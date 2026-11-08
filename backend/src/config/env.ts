@@ -88,6 +88,8 @@ export const env = {
   RAG_MAX_CHUNKS_PER_DOCUMENT: readEnvNumber('RAG_MAX_CHUNKS_PER_DOCUMENT', 400),
   /** Budget caractères des extraits ajoutés au prompt. */
   RAG_CONTEXT_MAX_CHARS: readEnvNumber('RAG_CONTEXT_MAX_CHARS', 4_000),
+  /** Outils (calculatrice, recherche dans les documents, effacement d'un souvenir). `0` ou `false` les désactive. */
+  TOOLS_ENABLED: !['0', 'false', 'off'].includes(readEnv('TOOLS_ENABLED', 'true').toLowerCase()),
   /** Limite du body JSON Express (ex. 256kb). */
   JSON_BODY_LIMIT: readEnv('JSON_BODY_LIMIT', '256kb'),
   /** Origine du frontend (CORS + credentials). */

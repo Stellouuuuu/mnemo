@@ -33,6 +33,9 @@ function fakeChatService(): Pick<ConversationService, 'chat'> {
         conversationId: 'conv-1',
         messages: [{ role: 'user', content: 'Bonjour' }, { role: 'assistant', content: 'ok' }],
         response: 'ok',
+        sources: [],
+        toolCalls: [],
+        pendingActions: [],
       };
     },
   };

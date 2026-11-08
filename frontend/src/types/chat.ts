@@ -8,12 +8,23 @@ export interface SourceRef {
   snippet: string;
 }
 
+/** Action sensible demandée par le modèle, en attente de l'accord de l'utilisateur. */
+export interface PendingAction {
+  id: string;
+  tool: string;
+  summary: string;
+  conversationId: string;
+  expiresAt: string;
+}
+
 /** Message affiché dans l'UI (avec id local). */
 export interface ChatMessage {
   id: string;
   role: MessageRole;
   content: string;
   sources?: SourceRef[];
+  /** Outils exécutés pour cette réponse (visible pendant la session seulement). */
+  tools?: string[];
   createdAt?: string;
 }
 
@@ -33,6 +44,8 @@ export interface ChatSuccessResponse {
   messages: ApiChatMessage[];
   response: string;
   sources?: SourceRef[];
+  toolCalls?: { name: string }[];
+  pendingActions?: PendingAction[];
 }
 
 export interface ChatErrorResponse {

@@ -3,6 +3,7 @@ import { AppShell } from '../components/layout/AppShell';
 import { ChatWindow } from '../components/chat/ChatWindow';
 import { ConversationSidebar } from '../components/conversations/ConversationSidebar';
 import { DocumentsPanel } from '../components/documents/DocumentsPanel';
+import { PendingActions } from '../components/chat/PendingActions';
 import { MemoryPanel } from '../components/memory/MemoryPanel';
 import {
   conversationHeaderTitle,
@@ -22,15 +23,19 @@ import {
   replaceStreamMessage,
   retainMessagesOnSendFailure,
 } from '../lib/chat-send';
+import { addPending, pendingForConversation, usedToolLabels } from '../lib/tools';
 import {
   ApiError,
+  confirmAction,
   deleteConversation,
+  denyAction,
   getConversation,
   listConversations,
+  listPendingActions,
   streamChatMessage,
 } from '../services/api';
 import type { AuthUser } from '../types/auth';
-import type { ChatMessage, ConversationSummary, SourceRef } from '../types/chat';
+import type { ChatMessage, ConversationSummary, PendingAction, SourceRef } from '../types/chat';
 
 function formatError(err: unknown): string {
   if (err instanceof ApiError) {
@@ -56,6 +61,8 @@ export function ChatPage({ user, onLogout }: ChatPageProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMemoryOpen, setIsMemoryOpen] = useState(false);
   const [isDocumentsOpen, setIsDocumentsOpen] = useState(false);
+  const [pendingActions, setPendingActions] = useState<PendingAction[]>([]);
+  const [actionBusy, setActionBusy] = useState(false);
   const [restoreDraft, setRestoreDraft] = useState<string | null>(null);
   const [restoreKey, setRestoreKey] = useState(0);
   const isSendingRef = useRef(false);
@@ -121,6 +128,14 @@ export function ChatPage({ user, onLogout }: ChatPageProps) {
         }
 
         setConversations(listed);
+        // Les demandes d'accord survivent au rechargement de la page tant qu'elles n'ont pas expiré.
+        void listPendingActions()
+          .then((actions) => {
+            if (!cancelled) {
+              setPendingActions(actions);
+            }
+          })
+          .catch(() => undefined);
 
         const mostRecent = pickMostRecentConversation(listed);
         if (!mostRecent) {
@@ -245,6 +260,9 @@ export function ChatPage({ user, onLogout }: ChatPageProps) {
         onSources: (sources) => {
           streamSources = sources;
         },
+        onConfirmation: (action) => {
+          setPendingActions((current) => addPending(current, action));
+        },
         onReplace: (text) => {
           setMessages((current) => replaceStreamMessage(current, streamId, text));
         },
@@ -256,14 +274,22 @@ export function ChatPage({ user, onLogout }: ChatPageProps) {
       });
 
       setConversationId(result.conversationId);
-      setMessages((current) =>
-        mapApiMessagesToChatMessages(
+      const tools = usedToolLabels((result.toolCalls ?? []).map((call) => call.name));
+      setMessages((current) => {
+        const mapped = mapApiMessagesToChatMessages(
           result.messages,
           result.conversationId,
           current,
           result.sources ?? [],
-        ),
-      );
+        );
+        const last = mapped[mapped.length - 1];
+        return tools.length > 0 && last?.role === 'assistant'
+          ? [...mapped.slice(0, -1), { ...last, tools }]
+          : mapped;
+      });
+      for (const action of result.pendingActions ?? []) {
+        setPendingActions((current) => addPending(current, action));
+      }
       await refreshConversations();
     } catch (err) {
       if (handleAuthFailure(err)) {
@@ -302,6 +328,31 @@ export function ChatPage({ user, onLogout }: ChatPageProps) {
     } finally {
       isSendingRef.current = false;
       setIsSending(false);
+    }
+  }
+
+  async function handleAction(action: PendingAction, accept: boolean) {
+    setActionBusy(true);
+    setError(null);
+    try {
+      if (accept) {
+        await confirmAction(action.id);
+      } else {
+        await denyAction(action.id);
+      }
+      setPendingActions((current) => current.filter((a) => a.id !== action.id));
+      if (accept && action.conversationId === conversationId) {
+        await loadConversationDetail(action.conversationId);
+        await refreshConversations();
+      }
+    } catch (err) {
+      if (handleAuthFailure(err)) {
+        return;
+      }
+      setPendingActions((current) => current.filter((a) => a.id !== action.id));
+      setError(formatError(err));
+    } finally {
+      setActionBusy(false);
     }
   }
 
@@ -370,6 +421,16 @@ export function ChatPage({ user, onLogout }: ChatPageProps) {
         />
       }
     >
+      <PendingActions
+        actions={pendingForConversation(pendingActions, conversationId)}
+        busy={actionBusy || isSending}
+        onConfirm={(action) => {
+          void handleAction(action, true);
+        }}
+        onDeny={(action) => {
+          void handleAction(action, false);
+        }}
+      />
       <ChatWindow
         messages={messages}
         isLoading={isSending || isDetailLoading}

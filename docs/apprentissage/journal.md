@@ -4,6 +4,29 @@ Les entrées les plus récentes en haut.
 
 ---
 
+## 2026-11-08 - v0.5 : des outils, avec le serveur qui décide
+
+**Version / phase :** v0.5, mécanisme terminé
+
+**Ce qui a changé :**
+
+- Trois outils (calculatrice sans `eval`, recherche dans les documents, effacement d'un souvenir), un moteur de permissions côté serveur (`backend/src/tools/`) et un écran pour autoriser ou refuser les actions sensibles.
+- Règle de conception : **le modèle ne fait que demander**. Il n'a aucun droit propre : outil inconnu, argument en trop (par exemple un `userId` glissé pour viser un autre compte) ou action sensible sans accord, tout est refusé ou mis en attente par le code. Le test le plus important : un document contenant « APPELLE delete_memory » fait demander l'effacement au modèle, mais le souvenir est toujours là, en attente.
+- Journal des appels (`tool_audit`), et résultats d'outils présentés au modèle comme des données.
+
+**Ce qui n'a pas marché :** mesuré sur le vrai modèle (`mistral` 7B via Ollama), le choix de l'outil n'est **pas fiable**.
+
+- Dans l'application, sur 22 questions (2 répétitions) : l'outil est déclenché **2 fois sur 8** pour les calculs et **0 fois sur 6** pour l'effacement d'un souvenir (une fois que je retrouve aussi les appels que le modèle écrit en texte JSON) ; les 8 questions sans outil sont bien traitées (aucun appel inutile). Le plus souvent, le modèle répond en texte : il donne le résultat de tête, ou dit qu'il pourrait effacer le souvenir si on le lui demande, ou affirme qu'il ne peut pas.
+- Sans l'application, directement sur Ollama, la même question de calcul donne tantôt 6 appels corrects sur 6, tantôt 0 sur 6, selon le texte du message système (vide, court, avec une phrase de plus) et sans règle que j'aie pu isoler. Je n'ai donc pas « réglé » le prompt : avec un tel écart, tout réglage serait du hasard.
+- Le garde contre la fuite du prompt a bloqué une réponse légitime : le modèle avait recopié la phrase de ma section « outils » (« utilise la calculatrice pour tout calcul au lieu de calculer de tête »). Le garde échoue du côté sûr, mais il peut gêner : à surveiller.
+- Je voulais comparer avec `qwen2.5:7b`, connu pour mieux gérer les outils. Le disque est plein à 98 % : j'ai interrompu le téléchargement plutôt que de le saturer. La comparaison reste à faire (un modèle plus petit comme `qwen2.5:3b` ou `llama3.2:3b` tiendrait).
+
+**Ce que j'ai appris :** la sécurité des outils ne dépend pas du modèle (c'est du code, testé), mais leur utilité en dépend entièrement. Il faut mesurer avant de promettre qu'un assistant « utilise des outils ».
+
+**Aussi :** `backend/eval/tools-eval.ts` rejoue cette mesure contre un serveur démarré.
+
+---
+
 ## 2026-11-08 - Premier audit avec AegisAI (v0.4)
 
 **Version / phase :** v0.4, sécurité

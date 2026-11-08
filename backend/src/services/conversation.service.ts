@@ -21,7 +21,9 @@ import { MNEMO_SYSTEM_PROMPT } from '../prompts/mnemo-system.js';
 import type { ChatMessage, OllamaChatMessage } from '../types/chat.js';
 import {
   chatWithOllama,
+  streamChatWithOllama,
   type ChatModelClient,
+  type ChatModelStreamClient,
 } from './ollama.service.js';
 import { buildOllamaMessages, formatUserMemoryBlock } from './prompt-builder.js';
 
@@ -46,6 +48,12 @@ export interface ConversationResult {
   response: string;
 }
 
+/** Événements d'une réponse en flux : l'identifiant, puis des fragments, puis le résultat final. */
+export type ConversationStreamEvent =
+  | { type: 'meta'; conversationId: string }
+  | { type: 'delta'; text: string }
+  | { type: 'done'; result: ConversationResult };
+
 export { ConversationNotFoundError, ConversationBusyError };
 
 /**
@@ -60,6 +68,7 @@ export class ConversationService {
     private readonly conversationHistory: ConversationHistoryService = new ConversationHistoryService(
       new InMemoryConversationStore(),
     ),
+    private readonly chatModelStream: ChatModelStreamClient = streamChatWithOllama,
   ) {}
 
   async prepareContext(
@@ -136,6 +145,71 @@ export class ConversationService {
         conversationId,
         messages: persisted.map(({ role, content }) => ({ role, content })),
         response,
+      };
+    } finally {
+      releaseLock();
+    }
+  }
+
+  /**
+   * Comme `chat`, mais la réponse arrive fragment par fragment. La réponse n'est enregistrée
+   * qu'une fois complète : si le client coupe en route, rien d'incomplet n'est conservé.
+   */
+  async *chatStream(
+    input: ConversationInput,
+  ): AsyncGenerator<ConversationStreamEvent, void, undefined> {
+    await this.conversationHistory.ensureUser(input.userId);
+
+    const conversationId = await this.ensureConversation(input);
+    const releaseLock = tryAcquireGenerationLock(conversationId);
+    if (!releaseLock) {
+      throw new ConversationBusyError();
+    }
+
+    try {
+      if (input.signal?.aborted) {
+        throw new FetchAbortedError();
+      }
+
+      await this.conversationHistory.appendNewMessages(conversationId, [
+        { role: 'user', content: input.content },
+      ]);
+      yield { type: 'meta', conversationId };
+
+      const messagesForModel = await this.loadMessagesForModel(conversationId);
+      await this.applyAutomaticMemories({
+        userId: input.userId,
+        messages: messagesForModel,
+        signal: input.signal,
+      });
+
+      const context = await this.prepareContext(input.userId, messagesForModel);
+      let response = '';
+      for await (const text of this.chatModelStream(context.ollamaMessages, {
+        signal: input.signal,
+      })) {
+        response += text;
+        yield { type: 'delta', text };
+      }
+
+      if (input.signal?.aborted) {
+        throw new FetchAbortedError();
+      }
+
+      await this.conversationHistory.appendMessage({
+        conversationId,
+        role: 'assistant',
+        content: response,
+      });
+      const persisted = await this.conversationHistory.listMessages(conversationId);
+
+      yield {
+        type: 'done',
+        result: {
+          conversationId,
+          messages: persisted.map(({ role, content }) => ({ role, content })),
+          response,
+        },
       };
     } finally {
       releaseLock();

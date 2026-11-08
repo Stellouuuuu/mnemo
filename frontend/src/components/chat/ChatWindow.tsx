@@ -42,7 +42,8 @@ export function ChatWindow({
   onSend,
   onRegenerate,
 }: ChatWindowProps) {
-  const showThinking = isLoading && statusMessage === null;
+  const answerStarted = messages[messages.length - 1]?.role === 'assistant';
+  const showThinking = isLoading && statusMessage === null && !answerStarted;
   const listRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const stuckToBottomRef = useRef(true);

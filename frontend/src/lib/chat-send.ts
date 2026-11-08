@@ -102,3 +102,26 @@ export function mergeSyncedMessagesAfterFailure(
 
   return appendOptimisticUserMessage(serverMessages, sentContent);
 }
+
+/** Ajoute un fragment de réponse à la bulle en cours de génération (la crée au premier). */
+export function applyStreamDelta(
+  messages: ChatMessage[],
+  streamId: string,
+  text: string,
+  now: string = new Date().toISOString(),
+): ChatMessage[] {
+  const last = messages[messages.length - 1];
+  if (last?.id === streamId) {
+    return [...messages.slice(0, -1), { ...last, content: last.content + text }];
+  }
+
+  return [...messages, { id: streamId, role: 'assistant', content: text, createdAt: now }];
+}
+
+/** Retire la bulle en cours de génération (échec avant la fin de la réponse). */
+export function dropStreamingMessage(
+  messages: ChatMessage[],
+  streamId: string,
+): ChatMessage[] {
+  return messages.filter((message) => message.id !== streamId);
+}

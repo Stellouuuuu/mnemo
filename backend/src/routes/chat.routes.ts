@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, type Response } from 'express';
 import { parseChatUserContent } from '../chat/parse-messages.js';
 import { ConversationNotFoundError } from '../conversations/index.js';
 import {
@@ -28,6 +28,26 @@ function parseOptionalConversationId(raw: unknown):
   }
 
   return { ok: true, conversationId: raw.trim() };
+}
+
+/**
+ * Coupe la génération quand le client se déconnecte. On écoute la réponse : sur Node 22,
+ * l'événement `close` de la requête part dès que son corps est lu, pas à la déconnexion.
+ */
+function abortOnDisconnect(res: Response, controller: AbortController): () => void {
+  const onClose = () => {
+    if (!res.writableFinished) {
+      controller.abort();
+    }
+  };
+  res.on('close', onClose);
+  return () => {
+    res.removeListener('close', onClose);
+  };
+}
+
+function writeSse(res: Response, event: string, data: unknown): void {
+  res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
 }
 
 export function createChatRouter(conversationService: ConversationService): Router {
@@ -67,12 +87,7 @@ export function createChatRouter(conversationService: ConversationService): Rout
     }
 
     const abortController = new AbortController();
-    const onClose = () => {
-      if (!res.writableEnded) {
-        abortController.abort();
-      }
-    };
-    req.on('close', onClose);
+    const stopWatching = abortOnDisconnect(res, abortController);
 
     try {
       const result = await conversationService.chat({
@@ -105,7 +120,94 @@ export function createChatRouter(conversationService: ConversationService): Rout
       const mapped = httpErrorFromUnknown(error);
       res.status(mapped.status).json(toPublicErrorBody(mapped));
     } finally {
-      req.removeListener('close', onClose);
+      stopWatching();
+    }
+  });
+
+  chatRouter.post('/stream', async (req, res) => {
+    const userId = req.userId;
+    if (!userId) {
+      res.status(401).json({ error: 'Authentification requise.' });
+      return;
+    }
+
+    const body = req.body as { content?: unknown; conversationId?: unknown };
+    const parsedConversationId = parseOptionalConversationId(body.conversationId);
+    if (!parsedConversationId.ok) {
+      res.status(400).json({ error: parsedConversationId.error });
+      return;
+    }
+    const parsedContent = parseChatUserContent(body.content);
+    if (!parsedContent.ok) {
+      res.status(400).json({ error: parsedContent.error });
+      return;
+    }
+
+    const abortController = new AbortController();
+    const stopWatching = abortOnDisconnect(res, abortController);
+
+    let started = false;
+    const start = () => {
+      if (started) {
+        return;
+      }
+      started = true;
+      res.status(200);
+      res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-cache, no-transform');
+      res.setHeader('X-Accel-Buffering', 'no');
+      res.flushHeaders();
+    };
+
+    try {
+      for await (const event of conversationService.chatStream({
+        userId,
+        content: parsedContent.content,
+        conversationId: parsedConversationId.conversationId,
+        signal: abortController.signal,
+      })) {
+        start();
+        if (event.type === 'meta') {
+          writeSse(res, 'meta', { conversationId: event.conversationId });
+        } else if (event.type === 'delta') {
+          writeSse(res, 'delta', { text: event.text });
+        } else {
+          writeSse(res, 'done', event.result);
+        }
+      }
+      if (started) {
+        res.end();
+      }
+    } catch (error) {
+      if (error instanceof FetchAbortedError || abortController.signal.aborted) {
+        if (started) {
+          res.end();
+        }
+        return;
+      }
+
+      let status = 500;
+      let payload: { error: string; detail?: string };
+      if (error instanceof ConversationNotFoundError) {
+        status = 404;
+        payload = { error: error.message };
+      } else if (error instanceof ConversationBusyError) {
+        status = 409;
+        payload = { error: error.message };
+      } else {
+        const mapped = httpErrorFromUnknown(error);
+        status = mapped.status;
+        payload = toPublicErrorBody(mapped);
+      }
+
+      if (started) {
+        writeSse(res, 'error', payload);
+        res.end();
+      } else {
+        res.status(status).json(payload);
+      }
+    } finally {
+      stopWatching();
     }
   });
 

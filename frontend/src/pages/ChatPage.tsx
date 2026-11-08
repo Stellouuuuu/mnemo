@@ -10,7 +10,9 @@ import {
 } from '../lib/conversations';
 import {
   appendOptimisticUserMessage,
+  applyStreamDelta,
   canMutateConversations,
+  dropStreamingMessage,
   findLastUserContent,
   findNewlyCreatedConversation,
   mergeSyncedMessagesAfterFailure,
@@ -22,7 +24,7 @@ import {
   deleteConversation,
   getConversation,
   listConversations,
-  sendChatMessage,
+  streamChatMessage,
 } from '../services/api';
 import type { AuthUser } from '../types/auth';
 import type { ChatMessage, ConversationSummary } from '../types/chat';
@@ -226,8 +228,18 @@ export function ChatPage({ user, onLogout }: ChatPageProps) {
     setIsSending(true);
     setError(null);
 
+    // Même identifiant que la bulle finale : elle ne se remonte pas à la fin du flux.
+    let streamId = `stream-${Date.now()}`;
+
     try {
-      const result = await sendChatMessage(content, conversationAtSend);
+      const result = await streamChatMessage(content, conversationAtSend, {
+        onMeta: (id) => {
+          streamId = `${id}-${messages.length + 1}-assistant`;
+        },
+        onDelta: (text) => {
+          setMessages((current) => applyStreamDelta(current, streamId, text));
+        },
+      });
 
       setConversationId(result.conversationId);
       setMessages((current) =>
@@ -244,6 +256,7 @@ export function ChatPage({ user, onLogout }: ChatPageProps) {
       }
 
       setError(formatError(err));
+      setMessages((current) => dropStreamingMessage(current, streamId));
 
       if (regenerate && regenerateSnapshot) {
         setMessages(regenerateSnapshot);

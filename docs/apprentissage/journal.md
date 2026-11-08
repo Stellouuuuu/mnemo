@@ -4,6 +4,27 @@ Les entrées les plus récentes en haut.
 
 ---
 
+## 2026-11-08 - Streaming des réponses
+
+**Version / phase :** v0.1 et v0.2 terminées
+
+**Ce qui a changé :**
+
+- Le backend appelle Ollama avec `stream: true` et relaie chaque fragment au navigateur (SSE) sur `POST /api/chat/stream`. L'ancienne route `POST /api/chat` reste disponible.
+- Le délai d'attente de 60 s ne s'applique plus à la durée totale : il compte l'attente du premier fragment, puis entre deux fragments. Une longue réponse qui avance n'est plus coupée.
+- La réponse n'est enregistrée qu'une fois complète. Si on coupe en route, rien d'incomplet n'est gardé.
+
+**Ce qui n'a pas marché (et ce que j'ai appris) :**
+
+- Premier test réel : après avoir coupé la connexion au milieu d'une réponse, la conversation restait bloquée (erreur 409) et Ollama continuait à générer tout le poème pendant 19 secondes.
+- Cause : sur Node 22, l'événement `close` de la **requête** part quand son corps a été lu, pas quand le client se déconnecte. Il faut écouter `close` sur la **réponse**. Les tests unitaires ne pouvaient pas le voir, parce que leurs faux objets émettaient `close` à la main : seul un vrai client coupé en cours de route l'a montré. Le même défaut existait sur `POST /api/chat` : corrigé aussi.
+
+**Vérifié :** 201 tests backend (dont les 30 Postgres, sur une base jetable dans Docker), 66 tests frontend, et un essai réel avec le modèle local : premiers fragments en 3 s, puis un fragment toutes les 35 ms environ.
+
+**Ce qui reste :** écran "ce que Mnemo sait de moi" (v0.3), puis la v0.4 (RAG).
+
+---
+
 ## 2026-11-08 - Renommage en Mnemo et mise à jour de l'état réel
 
 **Version / phase :** v0.3 en cours

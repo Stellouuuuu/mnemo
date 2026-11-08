@@ -1,3 +1,4 @@
+import { createSseParser } from '../lib/sse';
 import type { AuthResponse, AuthUser } from '../types/auth';
 import type {
   ChatErrorResponse,
@@ -126,6 +127,87 @@ export async function sendChatMessage(
       ...(conversationId ? { conversationId } : {}),
     }),
   });
+}
+
+export interface ChatStreamHandlers {
+  onMeta?: (conversationId: string) => void;
+  onDelta: (text: string) => void;
+}
+
+/**
+ * Envoie un message et reçoit la réponse au fil de l'eau. Retourne le même résultat que
+ * `sendChatMessage` une fois la réponse complète.
+ */
+export async function streamChatMessage(
+  content: string,
+  conversationId: string | null | undefined,
+  handlers: ChatStreamHandlers,
+  signal?: AbortSignal,
+): Promise<ChatSuccessResponse> {
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}/api/chat/stream`, {
+      method: 'POST',
+      credentials: 'include',
+      signal,
+      headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
+      body: JSON.stringify({
+        content,
+        ...(conversationId ? { conversationId } : {}),
+      }),
+    });
+  } catch {
+    throw new ApiError('Impossible de contacter le backend Mnemo.', 0);
+  }
+
+  if (!response.ok || !response.body) {
+    const data = await parseJsonBody<unknown>(response);
+    throwIfErrorResponse(response, data as ChatErrorResponse);
+    throw new ApiError('Réponse API invalide.', response.status);
+  }
+
+  let result: ChatSuccessResponse | null = null;
+  let failure: ApiError | null = null;
+  const parser = createSseParser(({ event, data }) => {
+    let payload: unknown;
+    try {
+      payload = JSON.parse(data);
+    } catch {
+      return;
+    }
+    if (event === 'meta') {
+      handlers.onMeta?.((payload as { conversationId: string }).conversationId);
+    } else if (event === 'delta') {
+      handlers.onDelta((payload as { text: string }).text);
+    } else if (event === 'done') {
+      result = payload as ChatSuccessResponse;
+    } else if (event === 'error') {
+      const body = payload as ChatErrorResponse;
+      failure = new ApiError(body.error || 'Erreur pendant la réponse.', 502, body.detail);
+    }
+  });
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) {
+        break;
+      }
+      parser.push(decoder.decode(value, { stream: true }));
+    }
+  } catch {
+    throw new ApiError('La connexion a été interrompue pendant la réponse.', 0);
+  }
+
+  if (failure) {
+    throw failure;
+  }
+  if (!result) {
+    throw new ApiError('La réponse a été interrompue.', 0);
+  }
+  return result;
 }
 
 export async function listConversations(): Promise<ConversationSummary[]> {

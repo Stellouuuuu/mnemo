@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import type { ChatMessage, ConversationSummary } from '../types/chat';
 import {
   appendOptimisticUserMessage,
+  applyStreamDelta,
+  dropStreamingMessage,
   canMutateConversations,
   findLastUserContent,
   findNewlyCreatedConversation,
@@ -111,5 +113,23 @@ describe('régénération', () => {
     const prepared = prepareMessagesForRegenerate(messages);
     expect(prepared).toEqual([userMsg('Bonjour')]);
     expect(messages).toHaveLength(2);
+  });
+});
+
+describe('applyStreamDelta', () => {
+  it('crée la bulle au premier fragment puis la complète', () => {
+    const first = applyStreamDelta([userMsg('Salut')], 's-1', 'Bon', '2026-01-01T10:00:00.000Z');
+    expect(first).toHaveLength(2);
+    expect(first[1]).toMatchObject({ id: 's-1', role: 'assistant', content: 'Bon' });
+
+    const second = applyStreamDelta(first, 's-1', 'jour');
+    expect(second).toHaveLength(2);
+    expect(second[1]?.content).toBe('Bonjour');
+    expect(first[1]?.content).toBe('Bon');
+  });
+
+  it('retire la bulle en cours sans toucher aux autres messages', () => {
+    const messages = applyStreamDelta([userMsg('Salut')], 's-1', 'Bon');
+    expect(dropStreamingMessage(messages, 's-1')).toEqual([userMsg('Salut')]);
   });
 });

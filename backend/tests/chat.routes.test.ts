@@ -7,29 +7,32 @@ import { createChatRouter } from '../src/routes/chat.routes.js';
 import type { ConversationInput, ConversationService } from '../src/services/conversation.service.js';
 import { delay } from './helpers/async.js';
 
-interface FakeResponse {
+interface FakeResponse extends EventEmitter {
   statusCode: number;
   body: { error?: string; detail?: string } | undefined;
   writableEnded: boolean;
+  writableFinished: boolean;
   status(code: number): FakeResponse;
   json(payload: { error?: string; detail?: string }): FakeResponse;
 }
 
 function createFakeRes(): FakeResponse {
-  return {
-    statusCode: 200,
-    body: undefined,
-    writableEnded: false,
-    status(code: number) {
-      this.statusCode = code;
-      return this;
-    },
-    json(payload) {
-      this.body = payload;
-      this.writableEnded = true;
-      return this;
-    },
+  const res = new EventEmitter() as FakeResponse;
+  res.statusCode = 200;
+  res.body = undefined;
+  res.writableEnded = false;
+  res.writableFinished = false;
+  res.status = function (code: number) {
+    this.statusCode = code;
+    return this;
   };
+  res.json = function (payload) {
+    this.body = payload;
+    this.writableEnded = true;
+    this.writableFinished = true;
+    return this;
+  };
+  return res;
 }
 
 function createFakeReq(body: unknown): EventEmitter & {
@@ -157,7 +160,7 @@ describe('createChatRouter', () => {
     const res = createFakeRes();
     const pending = handler(req, res);
     await delay(20);
-    req.emit('close');
+    res.emit('close');
     await pending;
     assert.equal(aborted, true);
     assert.equal(res.writableEnded, false);

@@ -3,7 +3,7 @@
 Assistant IA personnel **local** — sans API commerciale payante (pas d’OpenAI, Anthropic, etc. pour le cœur du produit).
 
 > **Repo :** [Stellouuuuu/stella-ai](https://github.com/Stellouuuuu/stella-ai)  
-> **Phase actuelle : v0.3, mémoire persistante.** Le chat, les conversations, l'authentification et la mémoire fonctionnent. Il reste le streaming et l'écran de mémoire.  
+> **Phase actuelle : v0.3, mémoire persistante.** Le chat en streaming, les conversations, l'authentification et la mémoire fonctionnent. Il reste l'écran de mémoire.  
 > **Workflow :** push sur GitHub dès qu’une étape (checklist) fonctionne.
 
 ---

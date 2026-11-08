@@ -18,6 +18,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@napi-rs/canvas": "^1.1.0",
+    "@tesseract.js-data/fra": "^1.0.0",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
@@ -25,6 +27,7 @@
     "express": "^5.2.1",
     "express-rate-limit": "^8.6.2",
     "pg": "^8.23.0",
+    "tesseract.js": "^7.0.0",
     "unpdf": "^1.9.1"
   },
   "devDependencies": {

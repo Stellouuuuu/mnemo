@@ -70,6 +70,23 @@ export function createTools({ knowledge, memory }: ToolDependencies): ToolDefini
     },
   };
 
+  const listDocuments: ToolDefinition = {
+    name: 'list_documents',
+    description:
+      "Liste les documents que l'utilisateur a ajoutés (titres, taille). À utiliser avant de chercher dedans, ou quand il demande ce qu'il a ajouté.",
+    parameters: { type: 'object', properties: {} },
+    risk: 'read',
+    async execute(_args, context) {
+      const documents = await knowledge.listDocuments(context.userId);
+      if (documents.length === 0) {
+        return "L'utilisateur n'a ajouté aucun document.";
+      }
+      return documents
+        .map((doc, index) => `${index + 1}. ${doc.title} (${doc.chunkCount} passages)`)
+        .join('\n');
+    },
+  };
+
   const deleteMemory: ToolDefinition = {
     name: 'delete_memory',
     description:
@@ -101,5 +118,5 @@ export function createTools({ knowledge, memory }: ToolDependencies): ToolDefini
     },
   };
 
-  return [calculator, searchDocuments, deleteMemory];
+  return [calculator, listDocuments, searchDocuments, deleteMemory];
 }

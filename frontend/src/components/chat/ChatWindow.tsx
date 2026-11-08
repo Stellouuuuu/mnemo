@@ -7,11 +7,15 @@ import {
 } from '../../lib/chat-scroll';
 import { ChatInput } from './ChatInput';
 import { ChatMessage } from './ChatMessage';
+import type { StepInfo } from '../../types/chat';
+import { ChatSteps } from './ChatSteps';
 import { ChatThinking } from './ChatThinking';
 
 interface ChatWindowProps {
   messages: ChatMessageType[];
   isLoading?: boolean;
+  /** Étapes de l'agent reçues pendant que la réponse se construit. */
+  liveSteps?: StepInfo[];
   error?: string | null;
   emptyMessage?: string;
   statusMessage?: string | null;
@@ -33,6 +37,7 @@ function prefersReducedMotion(): boolean {
 export function ChatWindow({
   messages,
   isLoading = false,
+  liveSteps = [],
   error = null,
   emptyMessage = 'Aucun message pour le moment.',
   statusMessage = null,
@@ -141,6 +146,7 @@ export function ChatWindow({
             </p>
           ) : null}
 
+          {isLoading && liveSteps.length > 0 ? <ChatSteps steps={liveSteps} live /> : null}
           {showThinking ? <ChatThinking /> : null}
 
           <div ref={bottomRef} />

@@ -57,6 +57,22 @@ export interface ConversationContext {
   sources: SourceRef[];
 }
 
+/** Une étape de l'agent : un appel d'outil demandé par le modèle et ce que le serveur en a fait. */
+export interface StepInfo {
+  step: number;
+  tool: string;
+  status: 'result' | 'rejected' | 'confirmation';
+  /** Arguments demandés, abrégés. */
+  args: string;
+  /** Début du résultat (ou de la raison du refus). */
+  preview: string;
+}
+
+function shorten(text: string): string {
+  const flat = text.replace(/\s+/g, ' ').trim();
+  return flat.length > STEP_TEXT_CHARS ? `${flat.slice(0, STEP_TEXT_CHARS - 1)}…` : flat;
+}
+
 /** Un outil réellement exécuté pendant la réponse. */
 export interface ExecutedToolCall {
   name: string;
@@ -72,11 +88,15 @@ export interface ConversationResult {
   toolCalls: ExecutedToolCall[];
   /** Actions sensibles que le modèle a demandées et que l'utilisateur doit autoriser. */
   pendingActions: PendingAction[];
+  /** Toutes les étapes de l'agent, dans l'ordre. */
+  steps: StepInfo[];
+  /** Le budget d'étapes a été atteint : le modèle a dû conclure sans plus d'outils. */
+  budgetExhausted: boolean;
 }
 
-/** Tours de modèle avec outils : au plus ce nombre d'aller-retours, puis réponse sans outil. */
-const MAX_TOOL_ROUNDS = 3;
+/** Appels d'outils demandés dans un même tour de modèle. Le budget total est `AGENT_MAX_STEPS`. */
 const MAX_CALLS_PER_ROUND = 3;
+const STEP_TEXT_CHARS = 160;
 const EMPTY_REPLY_FALLBACK = "Je n'ai pas pu formuler de réponse. Pouvez-vous reformuler ?";
 
 /** Texte rendu au modèle : une donnée, jamais une consigne. */
@@ -89,6 +109,8 @@ interface GenerationEnd {
   text: string;
   toolCalls: ExecutedToolCall[];
   pendingActions: PendingAction[];
+  steps: StepInfo[];
+  budgetExhausted: boolean;
 }
 
 /** Événements d'une réponse en flux : l'identifiant, puis des fragments, puis le résultat final. */
@@ -97,7 +119,7 @@ export type ConversationStreamEvent =
   | { type: 'sources'; sources: SourceRef[] }
   | { type: 'delta'; text: string }
   /** Un outil a été traité : exécuté, refusé par le serveur, ou en attente d'accord. */
-  | { type: 'tool'; tool: string; status: 'result' | 'rejected' | 'confirmation' }
+  | ({ type: 'tool' } & StepInfo)
   | { type: 'confirmation'; action: PendingAction }
   /** Le texte déjà envoyé est retiré et remplacé : la réponse reproduisait les instructions internes. */
   | { type: 'replace'; text: string }
@@ -221,6 +243,8 @@ export class ConversationService {
           text: leaksSystemPrompt(generated) ? PROMPT_LEAK_REFUSAL : generated,
           toolCalls: [],
           pendingActions: [],
+          steps: [],
+          budgetExhausted: false,
         };
       }
 
@@ -317,6 +341,8 @@ export class ConversationService {
       sources: context.sources,
       toolCalls: end.toolCalls,
       pendingActions: end.pendingActions,
+      steps: end.steps,
+      budgetExhausted: end.budgetExhausted,
     };
   }
 
@@ -347,13 +373,15 @@ export class ConversationService {
     const executed: ExecutedToolCall[] = [];
     const pendingActions: PendingAction[] = [];
     const toolOutputs: string[] = [];
+    const steps: StepInfo[] = [];
+    const budget = env.AGENT_MAX_STEPS;
     let visible = '';
-    const rounds = tools ? MAX_TOOL_ROUNDS + 1 : 1;
+    const rounds = tools ? budget + 1 : 1;
     let toolsDisabled = false;
 
     for (let round = 0; round < rounds; round += 1) {
       // Au dernier tour on n'offre plus d'outils : le modèle doit conclure en texte.
-      const offerTools = tools !== null && round < MAX_TOOL_ROUNDS && !toolsDisabled;
+      const offerTools = tools !== null && steps.length < budget && !toolsDisabled;
       const options = {
         signal: input.signal,
         // Après un résultat d'outil, un silence du modèle n'est pas une panne : on y répond plus bas.
@@ -375,7 +403,7 @@ export class ConversationService {
           if (leaksSystemPrompt(visible)) {
             // Sortir de la boucle arrête la génération : le reste n'est jamais produit.
             yield { type: 'replace', text: PROMPT_LEAK_REFUSAL };
-            return { text: PROMPT_LEAK_REFUSAL, toolCalls: executed, pendingActions };
+            return { text: PROMPT_LEAK_REFUSAL, toolCalls: executed, pendingActions, steps, budgetExhausted: false };
           }
           yield { type: 'delta', text: chunk };
         }
@@ -385,7 +413,7 @@ export class ConversationService {
         calls = turn.toolCalls;
         visible += text;
         if (leaksSystemPrompt(visible)) {
-          return { text: PROMPT_LEAK_REFUSAL, toolCalls: executed, pendingActions };
+          return { text: PROMPT_LEAK_REFUSAL, toolCalls: executed, pendingActions, steps, budgetExhausted: false };
         }
         if (text !== '') {
           yield { type: 'delta', text };
@@ -426,13 +454,21 @@ export class ConversationService {
         })),
       });
 
-      for (const call of calls.slice(0, MAX_CALLS_PER_ROUND)) {
+      for (const call of calls.slice(0, Math.min(MAX_CALLS_PER_ROUND, budget - steps.length))) {
         const outcome = await tools.handleCall(call, {
           userId: input.userId,
           conversationId,
           signal: input.signal,
         });
-        yield { type: 'tool', tool: outcome.tool, status: outcome.kind };
+        const step: StepInfo = {
+          step: steps.length + 1,
+          tool: outcome.tool,
+          status: outcome.kind,
+          args: shorten(JSON.stringify(call.arguments ?? {})),
+          preview: shorten(outcome.output),
+        };
+        steps.push(step);
+        yield { type: 'tool', ...step };
         if (outcome.kind === 'result') {
           executed.push({ name: outcome.tool, arguments: call.arguments });
           toolOutputs.push(outcome.output);
@@ -455,7 +491,8 @@ export class ConversationService {
       yield { type: 'delta', text: visible };
     }
 
-    return { text: visible, toolCalls: executed, pendingActions };
+    const budgetExhausted = tools !== null && steps.length >= budget;
+    return { text: visible, toolCalls: executed, pendingActions, steps, budgetExhausted };
   }
 
   private async ensureConversation(input: ConversationInput): Promise<string> {

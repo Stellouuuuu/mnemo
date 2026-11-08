@@ -398,6 +398,8 @@ describe('POST /api/chat/stream', () => {
           sources: [],
           toolCalls: [],
           pendingActions: [],
+          steps: [],
+          budgetExhausted: false,
         },
       };
     });

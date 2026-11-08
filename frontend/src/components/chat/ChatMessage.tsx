@@ -5,6 +5,7 @@ import { MnemoMark } from '../brand/MnemoMark';
 import { ChatCodeBlock } from './ChatCodeBlock';
 import { ChatMessageActions } from './ChatMessageActions';
 import { ChatSources } from './ChatSources';
+import { ChatSteps } from './ChatSteps';
 
 interface ChatMessageProps {
   message: ChatMessageType;
@@ -111,7 +112,9 @@ export function ChatMessage({
             <p className="chat-message__content">{message.content}</p>
           )}
 
-          {message.tools && message.tools.length > 0 ? (
+          {message.steps && message.steps.length > 0 ? (
+            <ChatSteps steps={message.steps} budgetExhausted={message.budgetExhausted} />
+          ) : message.tools && message.tools.length > 0 ? (
             <p className="chat-tools">Outils utilisés : {message.tools.join(', ')}</p>
           ) : null}
 

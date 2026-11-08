@@ -36,6 +36,8 @@ function fakeChatService(): Pick<ConversationService, 'chat'> {
         sources: [],
         toolCalls: [],
         pendingActions: [],
+        steps: [],
+        budgetExhausted: false,
       };
     },
   };

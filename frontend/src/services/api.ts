@@ -12,6 +12,7 @@ import type {
   ConversationsListResponse,
   PendingAction,
   SourceRef,
+  StepInfo,
 } from '../types/chat';
 
 export const DEFAULT_API_BASE_URL = 'http://localhost:3001';
@@ -139,7 +140,7 @@ export interface ChatStreamHandlers {
   onMeta?: (conversationId: string) => void;
   onSources?: (sources: SourceRef[]) => void;
   /** Un outil a été utilisé, refusé ou mis en attente par le serveur. */
-  onTool?: (tool: string, status: 'result' | 'rejected' | 'confirmation') => void;
+  onStep?: (step: StepInfo) => void;
   onConfirmation?: (action: PendingAction) => void;
   /** Remplace le texte déjà reçu (réponse bloquée par le serveur). */
   onReplace?: (text: string) => void;
@@ -192,8 +193,7 @@ export async function streamChatMessage(
     } else if (event === 'sources') {
       handlers.onSources?.((payload as { sources: SourceRef[] }).sources);
     } else if (event === 'tool') {
-      const body = payload as { tool: string; status: 'result' | 'rejected' | 'confirmation' };
-      handlers.onTool?.(body.tool, body.status);
+      handlers.onStep?.(payload as StepInfo);
     } else if (event === 'confirmation') {
       handlers.onConfirmation?.(payload as PendingAction);
     } else if (event === 'replace') {

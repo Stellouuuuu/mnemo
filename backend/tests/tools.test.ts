@@ -238,7 +238,7 @@ describe('ToolRuntime : permissions', () => {
   it('expose les outils au modèle sans la fonction d’exécution', () => {
     const { runtime } = setup();
     const defs = runtime.definitionsForModel();
-    assert.deepEqual(defs.map((d) => d.function.name).sort(), ['calculator', 'delete_memory', 'search_documents']);
+    assert.deepEqual(defs.map((d) => d.function.name).sort(), ['calculator', 'delete_memory', 'list_documents', 'search_documents']);
     assert.ok(defs.every((d) => !('execute' in d.function)));
   });
 });

@@ -24,7 +24,7 @@ import {
   replaceStreamMessage,
   retainMessagesOnSendFailure,
 } from '../lib/chat-send';
-import { addPending, pendingForConversation, usedToolLabels } from '../lib/tools';
+import { addPending, addStep, pendingForConversation, usedToolLabels } from '../lib/tools';
 import {
   ApiError,
   confirmAction,
@@ -36,7 +36,7 @@ import {
   streamChatMessage,
 } from '../services/api';
 import type { AuthUser } from '../types/auth';
-import type { ChatMessage, ConversationSummary, PendingAction, SourceRef } from '../types/chat';
+import type { ChatMessage, ConversationSummary, PendingAction, SourceRef, StepInfo } from '../types/chat';
 
 function formatError(err: unknown): string {
   if (err instanceof ApiError) {
@@ -65,6 +65,7 @@ export function ChatPage({ user, onLogout }: ChatPageProps) {
   const [isActivityOpen, setIsActivityOpen] = useState(false);
   const [pendingActions, setPendingActions] = useState<PendingAction[]>([]);
   const [actionBusy, setActionBusy] = useState(false);
+  const [liveSteps, setLiveSteps] = useState<StepInfo[]>([]);
   const [restoreDraft, setRestoreDraft] = useState<string | null>(null);
   const [restoreKey, setRestoreKey] = useState(0);
   const isSendingRef = useRef(false);
@@ -249,6 +250,7 @@ export function ChatPage({ user, onLogout }: ChatPageProps) {
     }
     setIsSending(true);
     setError(null);
+    setLiveSteps([]);
 
     // Même identifiant que la bulle finale : elle ne se remonte pas à la fin du flux.
     let streamId = `stream-${Date.now()}`;
@@ -261,6 +263,9 @@ export function ChatPage({ user, onLogout }: ChatPageProps) {
         },
         onSources: (sources) => {
           streamSources = sources;
+        },
+        onStep: (step) => {
+          setLiveSteps((current) => addStep(current, step));
         },
         onConfirmation: (action) => {
           setPendingActions((current) => addPending(current, action));
@@ -285,8 +290,11 @@ export function ChatPage({ user, onLogout }: ChatPageProps) {
           result.sources ?? [],
         );
         const last = mapped[mapped.length - 1];
-        return tools.length > 0 && last?.role === 'assistant'
-          ? [...mapped.slice(0, -1), { ...last, tools }]
+        return last?.role === 'assistant' && (tools.length > 0 || (result.steps ?? []).length > 0)
+          ? [
+              ...mapped.slice(0, -1),
+              { ...last, tools, steps: result.steps ?? [], budgetExhausted: result.budgetExhausted },
+            ]
           : mapped;
       });
       for (const action of result.pendingActions ?? []) {
@@ -330,6 +338,7 @@ export function ChatPage({ user, onLogout }: ChatPageProps) {
     } finally {
       isSendingRef.current = false;
       setIsSending(false);
+      setLiveSteps([]);
     }
   }
 
@@ -442,6 +451,7 @@ export function ChatPage({ user, onLogout }: ChatPageProps) {
       />
       <ChatWindow
         messages={messages}
+        liveSteps={liveSteps}
         isLoading={isSending || isDetailLoading}
         error={error}
         threadKey={conversationId ?? 'new'}

@@ -8,6 +8,15 @@ export interface SourceRef {
   snippet: string;
 }
 
+/** Une étape de l'agent : un appel d'outil et ce que le serveur en a fait. */
+export interface StepInfo {
+  step: number;
+  tool: string;
+  status: 'result' | 'rejected' | 'confirmation';
+  args: string;
+  preview: string;
+}
+
 /** Action sensible demandée par le modèle, en attente de l'accord de l'utilisateur. */
 export interface PendingAction {
   id: string;
@@ -25,6 +34,9 @@ export interface ChatMessage {
   sources?: SourceRef[];
   /** Outils exécutés pour cette réponse (visible pendant la session seulement). */
   tools?: string[];
+  /** Étapes de l'agent pour cette réponse (visibles pendant la session seulement). */
+  steps?: StepInfo[];
+  budgetExhausted?: boolean;
   createdAt?: string;
 }
 
@@ -46,6 +58,8 @@ export interface ChatSuccessResponse {
   sources?: SourceRef[];
   toolCalls?: { name: string }[];
   pendingActions?: PendingAction[];
+  steps?: StepInfo[];
+  budgetExhausted?: boolean;
 }
 
 export interface ChatErrorResponse {

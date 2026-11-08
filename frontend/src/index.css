@@ -1617,3 +1617,52 @@ body {
   color: var(--mnemo-danger);
   font-size: 0.78rem;
 }
+
+.chat-steps {
+  margin-top: var(--mnemo-space-2);
+  font-size: 0.85rem;
+  color: var(--mnemo-ink-on-dark-muted);
+}
+
+.chat-steps__list {
+  margin: var(--mnemo-space-2) 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--mnemo-space-2);
+}
+
+.chat-steps__item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: var(--mnemo-space-2) var(--mnemo-space-3);
+  border-left: 2px solid var(--mnemo-border-strong);
+  background: rgb(246 240 230 / 5%);
+  border-radius: 0 var(--mnemo-radius-sm) var(--mnemo-radius-sm) 0;
+}
+
+.chat-steps__item--rejected {
+  border-left-color: var(--mnemo-danger-on-dark);
+}
+
+.chat-steps__item--confirmation {
+  border-left-color: var(--mnemo-accent);
+}
+
+.chat-steps__title {
+  color: var(--mnemo-ink-on-dark);
+  font-weight: 600;
+}
+
+.chat-steps__title em {
+  font-weight: 400;
+  font-style: normal;
+  color: var(--mnemo-ink-on-dark-muted);
+}
+
+.chat-steps__args {
+  overflow-wrap: anywhere;
+  font-size: 0.78rem;
+}

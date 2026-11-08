@@ -3,7 +3,7 @@
 Assistant IA personnel **local** — sans API commerciale payante (pas d’OpenAI, Anthropic, etc. pour le cœur du produit).
 
 > **Repo :** [Stellouuuuu/mnemo](https://github.com/Stellouuuuu/mnemo)  
-> **Phase actuelle : v0.5, outils (terminée).** Le chat en streaming, les conversations, l'authentification, la mémoire (avec son écran de contrôle) et les réponses appuyées sur vos documents (PDF, texte) fonctionnent.  
+> **Phase actuelle : v0.6, agent (terminée), prochaine étape v0.7.** Le chat en streaming, les conversations, l'authentification, la mémoire (avec son écran de contrôle) et les réponses appuyées sur vos documents (PDF, texte) fonctionnent.  
 > **Workflow :** push sur GitHub dès qu’une étape (checklist) fonctionne.
 
 ---
@@ -131,6 +131,14 @@ Second audit (v0.5, avec outils) : les permissions côté serveur tiennent (35 d
 Le modèle peut demander trois outils : une calculatrice, la recherche dans vos documents, et l'effacement d'un souvenir. **Il ne fait que demander : c'est le serveur qui décide.** Un outil inconnu ou des arguments invalides ne s'exécutent pas, l'identité vient toujours de la session (jamais d'un argument du modèle), et une action sensible reste en attente jusqu'au clic « Autoriser » de l'utilisateur. Tout est journalisé. Une consigne cachée dans un document ne peut donc pas effacer un souvenir : c'est testé.
 
 **Choix du modèle, mesuré :** `mistral` 7B n'appelle presque jamais les outils (calculatrice 2 fois sur 8, effacement 0 sur 6) ; `qwen2.5:3b`, le modèle par défaut, le fait bien (10 sur 12 et 9 sur 9) mais résiste moins aux injections (voir la section Sécurité). Le serveur est sûr dans les deux cas. Détails dans [le journal](docs/apprentissage/journal.md).
+
+## Agent (v0.6)
+
+Pour une demande qui en demande plusieurs, le modèle peut enchaîner les outils : lister les documents, y chercher, puis calculer. Il a un **budget d'étapes** (6 par défaut, `AGENT_MAX_STEPS`) : une fois atteint, il doit conclure sans outil, et la réponse indique que le budget l'a été. Chaque étape est visible dans l'interface (outil, arguments, début du résultat, et si le serveur l'a refusée ou mise en attente), et le panneau « Journal » garde la trace de tout ce qui a été demandé. Les règles de la v0.5 s'appliquent à chaque étape : une action sensible attend toujours votre accord.
+
+**Documents scannés :** un PDF dont les pages sont des images est lu par reconnaissance de texte (Tesseract, en local, français), jusqu'à 20 pages. La qualité dépend du scan et la reconnaissance peut se tromper.
+
+**Consignes cachées dans un document :** les phrases qui s'adressent à une IA (« ignore tes instructions », « réponds uniquement par... ») sont retirées de ce que le modèle voit, et le document est signalé dans l'écran « Documents ». C'est une réduction du risque, pas une garantie : une attaque reformulée peut passer, et un cours de sécurité qui cite une injection verra cette phrase retirée.
 
 ## Prochaine étape
 

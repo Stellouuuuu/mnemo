@@ -1,4 +1,9 @@
+import { env } from '../config/env.js';
 import type { TextSegment } from './chunking.js';
+import { ocrEnabled, recognizePages } from './ocr.js';
+
+/** Une page avec moins de caractères que cela est considérée comme une image sans texte. */
+const MIN_PAGE_CHARS = 20;
 
 export const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
 
@@ -38,6 +43,25 @@ function decodeText(buffer: Buffer): string {
   }
 }
 
+/** Remplace le texte des pages vides par celui que lit la reconnaissance de texte. */
+async function withOcr(pdf: unknown, segments: TextSegment[]): Promise<TextSegment[]> {
+  const blank = segments.filter((s) => s.text.trim().length < MIN_PAGE_CHARS).map((s) => s.page!);
+  if (blank.length === 0 || !ocrEnabled()) {
+    return segments;
+  }
+  if (blank.length > env.OCR_MAX_PAGES) {
+    throw new UnsupportedDocumentError(
+      `Ce PDF scanné a ${blank.length} pages sans texte : la reconnaissance est limitée à ${env.OCR_MAX_PAGES} pages.`,
+      413,
+    );
+  }
+
+  const recognized = await recognizePages(pdf, blank);
+  return segments.map((segment) =>
+    recognized.has(segment.page!) ? { page: segment.page, text: recognized.get(segment.page!) ?? '' } : segment,
+  );
+}
+
 /** Texte brut d'un document, page par page pour un PDF. */
 export async function extractSegments(
   buffer: Buffer,
@@ -56,8 +80,12 @@ export async function extractSegments(
       const pdf = await getDocumentProxy(new Uint8Array(buffer));
       const { text } = await extractText(pdf, { mergePages: false });
       const pages = Array.isArray(text) ? text : [text];
-      return pages.map((pageText, index) => ({ page: index + 1, text: pageText }));
-    } catch {
+      const segments = pages.map((pageText, index) => ({ page: index + 1, text: pageText }));
+      return await withOcr(pdf, segments);
+    } catch (error) {
+      if (error instanceof UnsupportedDocumentError) {
+        throw error;
+      }
       throw new UnsupportedDocumentError("Impossible de lire ce PDF (fichier abîmé ou protégé).");
     }
   }

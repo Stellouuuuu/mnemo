@@ -115,6 +115,8 @@ export function createChatRouter(conversationService: ConversationService): Rout
         sources: result.sources,
         toolCalls: result.toolCalls,
         pendingActions: result.pendingActions.map(toActionDto),
+        steps: result.steps,
+        budgetExhausted: result.budgetExhausted,
       });
     } catch (error) {
       if (error instanceof FetchAbortedError || abortController.signal.aborted) {
@@ -186,7 +188,8 @@ export function createChatRouter(conversationService: ConversationService): Rout
         } else if (event.type === 'sources') {
           writeSse(res, 'sources', { sources: event.sources });
         } else if (event.type === 'tool') {
-          writeSse(res, 'tool', { tool: event.tool, status: event.status });
+          const { type: _type, ...step } = event;
+          writeSse(res, 'tool', step);
         } else if (event.type === 'confirmation') {
           writeSse(res, 'confirmation', toActionDto(event.action));
         } else if (event.type === 'replace') {

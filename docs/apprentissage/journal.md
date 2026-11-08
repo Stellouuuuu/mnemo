@@ -4,6 +4,27 @@ Les entrées les plus récentes en haut.
 
 ---
 
+## 2026-11-08 - v0.6 : agent, injections, OCR, journal
+
+**Version / phase :** v0.6 terminée
+
+**Ce qui a changé :**
+
+- **Agent :** plusieurs outils enchaînés, budget d'étapes (6), chaque étape décrite et affichée en direct, bilan "budget atteint". Un nouvel outil `list_documents` rend les chaînes possibles. Je n'ai pas fait de planification explicite (le modèle qui annonce un plan) : avec des petits modèles locaux qui appellent déjà mal les outils, un plan écrit de plus aurait surtout ajouté du texte à vérifier.
+- **Moins d'exposition aux injections :** les phrases d'un document qui s'adressent à une IA sont retirées avant le modèle (dans le prompt et dans l'outil de recherche), et le document est signalé à l'utilisateur. Contrepartie assumée : un cours de sécurité qui cite une injection perd cette phrase.
+- **Garde de prompt assoupli :** il faut maintenant un long passage recopié (environ quinze mots) ou plusieurs passages distincts. Citer une seule règle courte ne bloque plus la réponse.
+- **PDF scannés :** Tesseract (en local, sans téléchargement : la langue française vient d'un paquet npm), pages rendues en image puis lues, 20 pages au plus, une reconnaissance à la fois. Sur ma page de test, 820 ms pour la première page.
+- **Écran "Journal"** : ce que Mnemo a demandé de faire, et ce que le serveur en a fait.
+
+**Ce que j'ai appris :**
+
+- Après avoir ajouté le filtre, mon test "une consigne cachée dans un document ne peut pas effacer un souvenir" a cassé : le modèle simulé n'obéissait plus parce qu'il ne voyait plus la consigne. Un test de sécurité qui ne passe que parce qu'une autre défense a masqué l'attaque ne prouve rien. Je l'ai réécrit avec un modèle qui demande l'effacement quoi qu'on lui dise (le pire cas), et j'ai ajouté un second test pour le filtre lui-même : deux défenses, deux tests.
+- Le budget doit compter les appels, pas les tours : un modèle qui demande 3 outils d'un coup ne doit pas dépasser le budget restant.
+
+**Ce qui reste :** mesurer le filtre d'injection avec AegisAI (avant/après), comparer d'autres modèles, et voir si le garde assoupli laisse passer plus de vraies fuites.
+
+---
+
 ## 2026-11-08 - Choisir le modèle des outils : utile ou résistant
 
 **Version / phase :** v0.5 terminée

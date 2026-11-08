@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppShell } from '../components/layout/AppShell';
 import { ChatWindow } from '../components/chat/ChatWindow';
 import { ConversationSidebar } from '../components/conversations/ConversationSidebar';
+import { ActivityPanel } from '../components/activity/ActivityPanel';
 import { DocumentsPanel } from '../components/documents/DocumentsPanel';
 import { PendingActions } from '../components/chat/PendingActions';
 import { MemoryPanel } from '../components/memory/MemoryPanel';
@@ -61,6 +62,7 @@ export function ChatPage({ user, onLogout }: ChatPageProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMemoryOpen, setIsMemoryOpen] = useState(false);
   const [isDocumentsOpen, setIsDocumentsOpen] = useState(false);
+  const [isActivityOpen, setIsActivityOpen] = useState(false);
   const [pendingActions, setPendingActions] = useState<PendingAction[]>([]);
   const [actionBusy, setActionBusy] = useState(false);
   const [restoreDraft, setRestoreDraft] = useState<string | null>(null);
@@ -393,6 +395,13 @@ export function ChatPage({ user, onLogout }: ChatPageProps) {
           <button
             type="button"
             className="app-shell__logout"
+            onClick={() => setIsActivityOpen(true)}
+          >
+            Journal
+          </button>
+          <button
+            type="button"
+            className="app-shell__logout"
             onClick={() => setIsMemoryOpen(true)}
           >
             Mémoire
@@ -457,6 +466,12 @@ export function ChatPage({ user, onLogout }: ChatPageProps) {
           void handleSend(lastUser, { regenerate: true });
         }}
       />
+      {isActivityOpen ? (
+        <ActivityPanel
+          onClose={() => setIsActivityOpen(false)}
+          onAuthFailure={handleAuthFailure}
+        />
+      ) : null}
       {isDocumentsOpen ? (
         <DocumentsPanel
           onClose={() => setIsDocumentsOpen(false)}

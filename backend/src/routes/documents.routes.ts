@@ -16,6 +16,7 @@ function toDto(document: KnowledgeDocument) {
     mimeType: document.mimeType,
     sizeBytes: document.sizeBytes,
     chunkCount: document.chunkCount,
+    flaggedCount: document.flaggedCount,
     createdAt: document.createdAt.toISOString(),
   };
 }

@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { env } from '../config/env.js';
 import { chunkSegments } from './chunking.js';
 import type { Embedder } from './embeddings.js';
+import { countInstructionSentences } from './instruction-filter.js';
 import {
   MAX_UPLOAD_BYTES,
   UnsupportedDocumentError,
@@ -94,6 +95,7 @@ export class KnowledgeService {
         title: sanitizeTitle(input.filename),
         mimeType,
         sizeBytes: input.data.length,
+        flaggedCount: pieces.reduce((sum, piece) => sum + countInstructionSentences(piece.content), 0),
       },
       pieces.map((piece, index) => ({
         index,

@@ -497,6 +497,22 @@ describe('garde contre la fuite des instructions internes', () => {
     assert.equal(leaksSystemPrompt(`- ${leaked.replace(/ /g, '  ')}`), true);
   });
 
+  it('ne bloque pas une réponse qui cite une seule règle courte', async () => {
+    const { leaksSystemPrompt } = await import('../src/chat/prompt-leak-guard.js');
+    assert.equal(
+      leaksSystemPrompt('Je dois utiliser la calculatrice pour tout calcul au lieu de calculer de tête, oui.'),
+      false,
+    );
+    assert.equal(leaksSystemPrompt("Mon unique nom est Mnemo et je n'ai pas d'autre prénom."), false);
+  });
+
+  it('bloque une copie de plusieurs règles même coupée en morceaux', async () => {
+    const { leaksSystemPrompt } = await import('../src/chat/prompt-leak-guard.js');
+    const lines = MNEMO_SYSTEM_PROMPT.split('\n').filter((l) => l.length > 60);
+    const pieces = [lines[0], lines[3], lines[6]].map((l) => l!.slice(0, 55));
+    assert.equal(leaksSystemPrompt(pieces.join(' ... ')), true);
+  });
+
   it('laisse passer les réponses normales et les courtes citations', async () => {
     const { leaksSystemPrompt } = await import('../src/chat/prompt-leak-guard.js');
     assert.equal(leaksSystemPrompt('Je suis Mnemo, votre assistante locale.'), false);

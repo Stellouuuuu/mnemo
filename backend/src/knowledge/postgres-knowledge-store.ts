@@ -10,6 +10,7 @@ interface DocumentRow extends QueryResultRow {
   mime_type: string;
   size_bytes: number;
   chunk_count: number;
+  flagged_count: number;
   created_at: Date;
 }
 
@@ -31,6 +32,7 @@ function mapDocument(row: DocumentRow): KnowledgeDocument {
     mimeType: row.mime_type,
     sizeBytes: row.size_bytes,
     chunkCount: row.chunk_count,
+    flaggedCount: row.flagged_count,
     createdAt: row.created_at,
   };
 }
@@ -102,7 +104,7 @@ export class PostgresKnowledgeStore implements KnowledgeStore {
 
   async listDocuments(userId: string): Promise<KnowledgeDocument[]> {
     const result = await this.pool.query<DocumentRow>(
-      `SELECT id, user_id, title, mime_type, size_bytes, chunk_count, created_at
+      `SELECT id, user_id, title, mime_type, size_bytes, chunk_count, flagged_count, created_at
        FROM documents WHERE user_id = $1 ORDER BY created_at DESC, id`,
       [userId],
     );
@@ -117,9 +119,9 @@ export class PostgresKnowledgeStore implements KnowledgeStore {
     try {
       await client.query('BEGIN');
       const inserted = await client.query<DocumentRow>(
-        `INSERT INTO documents (id, user_id, title, mime_type, size_bytes, chunk_count)
-         VALUES ($1, $2, $3, $4, $5, $6)
-         RETURNING id, user_id, title, mime_type, size_bytes, chunk_count, created_at`,
+        `INSERT INTO documents (id, user_id, title, mime_type, size_bytes, chunk_count, flagged_count)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
+         RETURNING id, user_id, title, mime_type, size_bytes, chunk_count, flagged_count, created_at`,
         [
           document.id,
           document.userId,
@@ -127,6 +129,7 @@ export class PostgresKnowledgeStore implements KnowledgeStore {
           document.mimeType,
           document.sizeBytes,
           chunks.length,
+          document.flaggedCount,
         ],
       );
       for (const chunk of chunks) {

@@ -6,6 +6,8 @@ export interface KnowledgeDocument {
   mimeType: string;
   sizeBytes: number;
   chunkCount: number;
+  /** Phrases adressées à une IA trouvées dans le document : elles ne sont jamais montrées au modèle. */
+  flaggedCount: number;
   createdAt: Date;
 }
 

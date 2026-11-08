@@ -173,6 +173,11 @@ export function DocumentsPanel({ onClose, onAuthFailure }: DocumentsPanelProps) 
                   <small className="documents-item__meta">
                     {formatBytes(item.sizeBytes)} · {item.chunkCount} passages
                   </small>
+                  {item.flaggedCount ? (
+                    <small className="documents-item__warning">
+                      {item.flaggedCount} phrase(s) adressée(s) à une IA : Mnemo ne les voit jamais.
+                    </small>
+                  ) : null}
                 </span>
                 <span className="memory-item__actions">
                   <button type="button" disabled={busy} onClick={() => void remove(item)}>

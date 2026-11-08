@@ -3,6 +3,7 @@ import {
   MEMORY_KEY_LABELS,
   type AllowedMemoryKey,
 } from '../memory/memory-schema.js';
+import { redactInstructions } from '../knowledge/instruction-filter.js';
 import type { RetrievedChunk } from '../knowledge/types.js';
 import type { ChatMessage, OllamaChatMessage } from '../types/chat.js';
 
@@ -60,7 +61,8 @@ export function formatKnowledgeBlock(chunks: RetrievedChunk[]): string | null {
 
   const excerpts = chunks.map((chunk, index) => {
     const where = chunk.page ? `${chunk.title}, page ${chunk.page}` : chunk.title;
-    return [`[${index + 1}] ${neutralizeExcerpt(where)}`, '<<<', neutralizeExcerpt(chunk.content), '>>>'].join(
+    const safe = redactInstructions(chunk.content).text;
+    return [`[${index + 1}] ${neutralizeExcerpt(where)}`, '<<<', neutralizeExcerpt(safe), '>>>'].join(
       '\n',
     );
   });

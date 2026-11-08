@@ -4,6 +4,7 @@ export interface DocumentItem {
   mimeType: string;
   sizeBytes: number;
   chunkCount: number;
+  flaggedCount?: number;
   createdAt: string;
 }
 

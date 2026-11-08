@@ -1,5 +1,6 @@
 import { createSseParser } from '../lib/sse';
 import type { AuthResponse, AuthUser } from '../types/auth';
+import type { AuditItem } from '../lib/audit';
 import { mimeTypeForFile } from '../lib/documents';
 import type { DocumentItem, DocumentsListResponse } from '../types/documents';
 import type { MemoriesListResponse, MemoryItem } from '../types/memory';
@@ -261,6 +262,11 @@ export async function confirmAction(id: string): Promise<void> {
 
 export async function denyAction(id: string): Promise<void> {
   await requestJson<void>(`/api/actions/${encodeURIComponent(id)}/deny`, { method: 'POST' });
+}
+
+export async function listActionHistory(): Promise<AuditItem[]> {
+  const data = await requestJson<{ entries: AuditItem[] }>('/api/actions/history');
+  return data.entries;
 }
 
 export async function listDocuments(): Promise<DocumentItem[]> {

@@ -1,6 +1,7 @@
 import type { KnowledgeService } from '../knowledge/knowledge.service.js';
 import { ALLOWED_MEMORY_KEYS, MEMORY_KEY_LABELS } from '../memory/memory-schema.js';
 import type { MemoryService } from '../memory/memory.service.js';
+import { redactInstructions } from '../knowledge/instruction-filter.js';
 import { CalculatorError, evaluateExpression } from './calculator.js';
 import type { ToolDefinition } from './types.js';
 
@@ -62,7 +63,7 @@ export function createTools({ knowledge, memory }: ToolDependencies): ToolDefini
       return hits
         .map((hit, index) => {
           const where = hit.page ? `${hit.title}, page ${hit.page}` : hit.title;
-          const text = hit.content.replace(/\s+/g, ' ').trim().slice(0, EXCERPT_CHARS);
+          const text = redactInstructions(hit.content).text.replace(/\s+/g, ' ').trim().slice(0, EXCERPT_CHARS);
           return `[${index + 1}] ${where} : ${text}`;
         })
         .join('\n');

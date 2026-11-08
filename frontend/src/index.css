@@ -1595,3 +1595,25 @@ body {
   font-size: 0.8rem;
   color: var(--mnemo-ink-on-dark-muted);
 }
+
+.activity-item {
+  grid-template-columns: 1fr auto;
+}
+
+.activity-status {
+  font-size: 0.78rem;
+  color: var(--mnemo-ink-muted);
+  white-space: nowrap;
+}
+
+.activity-status--done {
+  color: var(--mnemo-primary);
+  font-weight: 600;
+}
+
+.documents-item__warning {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--mnemo-danger);
+  font-size: 0.78rem;
+}

@@ -4,6 +4,23 @@ Les entrées les plus récentes en haut.
 
 ---
 
+## 2026-11-08 - Choisir le modèle des outils : utile ou résistant
+
+**Version / phase :** v0.5 terminée
+
+**Ce qui s'est passé :** `mistral` 7B n'appelait presque jamais les outils. J'ai téléchargé `qwen2.5:3b` (1,9 Go, après avoir supprimé deux modèles inutiles) et rejoué la même mesure : calculatrice 10 fois sur 12, effacement 9 sur 9. Puis j'ai scanné les deux avec AegisAI : **74 sur 100 avec mistral, 36 avec qwen**. Le petit modèle suit les consignes cachées, y compris celle d'un document indexé.
+
+**Ce que j'ai appris :**
+
+- Il y a un vrai compromis entre un modèle qui obéit bien (donc utilise les outils) et un modèle qui résiste aux injections : c'est la même docilité. Aucun prompt ne règle ça.
+- Le serveur, lui, ne dépend pas du modèle : 35 demandes d'effacement provoquées par des injections, toutes bloquées. C'est le résultat dont je suis le plus content, parce qu'il vient du code et pas de la chance.
+- Un bogue réel trouvé en changeant de modèle : quand `qwen` écrit mal son appel d'outil, Ollama jette l'appel et renvoie une réponse vide, ce qui faisait échouer la requête (erreur 502). Je reprends maintenant le tour sans outils, et après un résultat d'outil sans texte je rends le résultat tel quel. Deux tests le couvrent.
+- Mesurer le même code avec deux modèles évite de croire que « le score d'audit » est une propriété de l'application.
+
+**Ce qui reste :** tester un modèle de 7B à 8B conçu pour les outils (il faut du disque), et chercher comment réduire l'exposition aux injections sans changer de modèle.
+
+---
+
 ## 2026-11-08 - v0.5 : des outils, avec le serveur qui décide
 
 **Version / phase :** v0.5, mécanisme terminé

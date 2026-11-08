@@ -346,13 +346,20 @@ export class ConversationService {
     const definitions = tools?.definitionsForModel();
     const executed: ExecutedToolCall[] = [];
     const pendingActions: PendingAction[] = [];
+    const toolOutputs: string[] = [];
     let visible = '';
     const rounds = tools ? MAX_TOOL_ROUNDS + 1 : 1;
+    let toolsDisabled = false;
 
     for (let round = 0; round < rounds; round += 1) {
       // Au dernier tour on n'offre plus d'outils : le modèle doit conclure en texte.
-      const offerTools = tools !== null && round < MAX_TOOL_ROUNDS;
-      const options = { signal: input.signal, ...(offerTools ? { tools: definitions } : {}) };
+      const offerTools = tools !== null && round < MAX_TOOL_ROUNDS && !toolsDisabled;
+      const options = {
+        signal: input.signal,
+        // Après un résultat d'outil, un silence du modèle n'est pas une panne : on y répond plus bas.
+        allowEmpty: round > 0 || offerTools,
+        ...(offerTools ? { tools: definitions } : {}),
+      };
       let text = '';
       let calls: ModelToolCall[] = [];
       const textBefore = visible;
@@ -383,6 +390,14 @@ export class ConversationService {
         if (text !== '') {
           yield { type: 'delta', text };
         }
+      }
+
+      if (calls.length === 0 && offerTools && text.trim() === '' && visible === textBefore) {
+        // Rien de lisible : le modèle a sans doute mal écrit son appel d'outil et Ollama l'a jeté.
+        // On reprend ce tour sans outils plutôt que d'échouer.
+        toolsDisabled = true;
+        round -= 1;
+        continue;
       }
 
       if (calls.length === 0 && offerTools && text !== '') {
@@ -420,6 +435,7 @@ export class ConversationService {
         yield { type: 'tool', tool: outcome.tool, status: outcome.kind };
         if (outcome.kind === 'result') {
           executed.push({ name: outcome.tool, arguments: call.arguments });
+          toolOutputs.push(outcome.output);
         } else if (outcome.kind === 'confirmation') {
           pendingActions.push(outcome.action);
           yield { type: 'confirmation', action: outcome.action };
@@ -430,6 +446,13 @@ export class ConversationService {
           content: wrapToolResult(outcome.tool, outcome.output),
         });
       }
+    }
+
+    if (visible.trim() === '' && toolOutputs.length > 0) {
+      // Le modèle n'a rien écrit après les outils : on donne les résultats tels quels plutôt que
+      // de répondre « je n'ai pas pu formuler de réponse ».
+      visible = toolOutputs.join('\n');
+      yield { type: 'delta', text: visible };
     }
 
     return { text: visible, toolCalls: executed, pendingActions };

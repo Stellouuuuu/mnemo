@@ -39,7 +39,8 @@ async function ask(content: string): Promise<Result> {
     body: JSON.stringify({ content }),
   });
   if (!response.ok) {
-    throw new Error(`HTTP ${response.status}`);
+    const body = (await response.text()).slice(0, 160);
+    throw new Error(`HTTP ${response.status} ${body}`);
   }
   return (await response.json()) as Result;
 }
@@ -56,10 +57,17 @@ async function main(): Promise<void> {
   const totals: Record<string, { ok: number; n: number }> = {};
   for (let run = 0; run < REPEATS; run += 1) {
     for (const { prompt, expect } of CASES) {
-      const result = await ask(prompt);
-      const ok = judge(result, expect);
       const entry = (totals[expect] ??= { ok: 0, n: 0 });
       entry.n += 1;
+      let result: Result;
+      try {
+        result = await ask(prompt);
+      } catch (error) {
+        // Une erreur du serveur compte comme un échec, sans interrompre la mesure.
+        console.log(`  erreur (${expect}) : ${prompt}\n    -> ${(error as Error).message}`);
+        continue;
+      }
+      const ok = judge(result, expect);
       entry.ok += ok ? 1 : 0;
       if (!ok) {
         console.log(`  raté (${expect}) : ${prompt}\n    -> ${result.response.slice(0, 110).replace(/\n/g, ' ')}`);

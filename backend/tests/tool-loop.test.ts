@@ -184,9 +184,16 @@ describe('boucle d’outils', () => {
     assert.deepEqual(result.toolCalls, [{ name: 'calculator', arguments: { expression: '2+2' } }]);
   });
 
-  it('remplace un tour sans texte final par une phrase de repli', async () => {
+  it('donne le résultat de l’outil quand le modèle ne dit plus rien ensuite', async () => {
     const { service } = build((_m, round) => (round === 0 ? [call('calculator', { expression: '1+1' })] : []));
     const { result } = await run(service, 'Calcule');
+    assert.equal(result.response, '1+1 = 2');
+    assert.deepEqual(result.toolCalls, [{ name: 'calculator', arguments: { expression: '1+1' } }]);
+  });
+
+  it('garde la phrase de repli quand rien du tout n’a été produit', async () => {
+    const { service } = build(() => []);
+    const { result } = await run(service, 'Dis quelque chose');
     assert.match(result.response, /reformuler/);
   });
 });
@@ -222,5 +229,32 @@ describe('appel d’outil écrit en texte par le modèle', () => {
     const { result } = await run(service, 'Donne un exemple JSON');
     assert.deepEqual(result.toolCalls, []);
     assert.match(result.response, /Sarah/);
+  });
+});
+
+describe('appel d’outil illisible', () => {
+  it('reprend le tour sans outils au lieu d’échouer', async () => {
+    const withTools: boolean[] = [];
+    const memory = new MemoryService(new InMemoryMemoryStore());
+    const knowledge = new KnowledgeService(new InMemoryKnowledgeStore(), new FakeEmbedder());
+    const service = new ConversationService(
+      memory,
+      async () => '',
+      undefined,
+      new ConversationHistoryService(new InMemoryConversationStore()),
+      async function* (_messages, options) {
+        withTools.push(Boolean(options?.tools?.length));
+        if (options?.tools?.length) {
+          return; // le modèle n'a rien produit de lisible
+        }
+        yield '15 % de 240 font 36.';
+      },
+      knowledge,
+      new ToolRuntime(createTools({ knowledge, memory }), new InMemoryAuditStore()),
+    );
+    const { result } = await run(service, 'Combien fait 15 % de 240 ?');
+
+    assert.deepEqual(withTools, [true, false]);
+    assert.equal(result.response, '15 % de 240 font 36.');
   });
 });

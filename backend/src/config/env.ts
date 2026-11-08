@@ -53,7 +53,7 @@ export const env = {
   /** Interface d’écoute. Défaut loopback ; 0.0.0.0 seulement si exposé volontairement. */
   HOST: readEnv('HOST', '127.0.0.1'),
   OLLAMA_BASE_URL: readEnv('OLLAMA_BASE_URL', 'http://localhost:11434'),
-  OLLAMA_MODEL: readEnv('OLLAMA_MODEL', 'mnemo:latest'),
+  OLLAMA_MODEL: readEnv('OLLAMA_MODEL', 'qwen2.5:3b'),
   MEMORY_STORE: resolveMemoryStore(),
   DATABASE_URL: readOptionalEnv('DATABASE_URL'),
   /** Timeout des appels /api/chat Ollama (ms). */

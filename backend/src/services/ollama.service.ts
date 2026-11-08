@@ -29,6 +29,8 @@ export interface ChatModelOptions {
   signal?: AbortSignal;
   /** Outils proposés au modèle. Il peut en demander, jamais les exécuter lui-même. */
   tools?: ModelToolDefinition[];
+  /** Accepte une réponse vide : après un résultat d'outil, certains modèles ne disent plus rien. */
+  allowEmpty?: boolean;
 }
 
 /** Un lot d'appels d'outils demandés par le modèle au cours d'une réponse. */
@@ -114,7 +116,7 @@ export async function chatTurnWithOllama(
   const toolCalls = readToolCalls(data.message?.tool_calls);
   const content = data.message?.content ?? '';
 
-  if (toolCalls.length === 0 && content.trim() === '') {
+  if (toolCalls.length === 0 && content.trim() === '' && !options?.allowEmpty) {
     throw new OllamaError('Ollama a renvoyé une réponse vide ou invalide');
   }
   return { text: capAssistantContent(content, env.CHAT_MAX_MESSAGE_CHARS), toolCalls };
@@ -369,7 +371,7 @@ export async function* streamChatWithOllama(
       }
     }
 
-    if (emitted === 0 && !sawToolCalls) {
+    if (emitted === 0 && !sawToolCalls && !options?.allowEmpty) {
       throw new OllamaError('Ollama a renvoyé une réponse vide ou invalide');
     }
   } finally {

@@ -3,7 +3,7 @@
 ## Cible
 
 ```text
-stella_ai/   (ou stella-ai/)
+mnemo/
 │
 ├── frontend/          # React + TS + Vite
 ├── backend/           # Node + Express + TS

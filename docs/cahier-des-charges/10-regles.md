@@ -34,5 +34,5 @@ Les deux coexistent. Le bleu ne casse jamais le vert.
 4. Écrire 5–10 lignes dans le journal (*pourquoi / résultat / échec*)
 5. **Commit + push sur GitHub quand l’étape voulue fonctionne** (checklist OK)
 
-Repo distant : `git@github.com:Stellouuuuu/stella-ai.git`  
-Dossier de travail : `stella-ai/` (pas le parent).
+Repo distant : `git@github.com:Stellouuuuu/mnemo.git`  
+Dossier de travail : le dossier du dépôt (pas le dossier parent).

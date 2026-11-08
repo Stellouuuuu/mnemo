@@ -2,7 +2,7 @@
 
 Assistant IA personnel **local** — sans API commerciale payante (pas d’OpenAI, Anthropic, etc. pour le cœur du produit).
 
-> **Repo :** [Stellouuuuu/stella-ai](https://github.com/Stellouuuuu/stella-ai)  
+> **Repo :** [Stellouuuuu/mnemo](https://github.com/Stellouuuuu/mnemo)  
 > **Phase actuelle : v0.5, outils (mécanisme terminé, fiabilité du modèle à améliorer).** Le chat en streaming, les conversations, l'authentification, la mémoire (avec son écran de contrôle) et les réponses appuyées sur vos documents (PDF, texte) fonctionnent.  
 > **Workflow :** push sur GitHub dès qu’une étape (checklist) fonctionne.
 

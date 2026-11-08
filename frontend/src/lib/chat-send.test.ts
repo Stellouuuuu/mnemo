@@ -133,3 +133,13 @@ describe('applyStreamDelta', () => {
     expect(dropStreamingMessage(messages, 's-1')).toEqual([userMsg('Salut')]);
   });
 });
+
+describe('applyStreamDelta avec sources', () => {
+  it('attache les sources à la bulle créée au premier fragment', () => {
+    const source = { documentId: 'd', title: 'cours.pdf', page: 2, snippet: 'useMemo' };
+    const messages = applyStreamDelta([userMsg('Q')], 's-1', 'Bon', '2026-01-01T10:00:00.000Z', [source]);
+    expect(messages[1]?.sources).toEqual([source]);
+    expect(applyStreamDelta(messages, 's-1', 'jour')[1]?.sources).toEqual([source]);
+    expect(applyStreamDelta([userMsg('Q')], 's-2', 'x')[1]?.sources).toBeUndefined();
+  });
+});

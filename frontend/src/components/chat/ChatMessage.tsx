@@ -4,6 +4,7 @@ import { formatMessageClock } from '../../lib/conversations';
 import { MnemoMark } from '../brand/MnemoMark';
 import { ChatCodeBlock } from './ChatCodeBlock';
 import { ChatMessageActions } from './ChatMessageActions';
+import { ChatSources } from './ChatSources';
 
 interface ChatMessageProps {
   message: ChatMessageType;
@@ -109,6 +110,10 @@ export function ChatMessage({
           ) : (
             <p className="chat-message__content">{message.content}</p>
           )}
+
+          {message.sources && message.sources.length > 0 ? (
+            <ChatSources sources={message.sources} />
+          ) : null}
 
           <ChatMessageActions
             text={message.content}

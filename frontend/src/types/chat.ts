@@ -1,10 +1,19 @@
 export type MessageRole = 'user' | 'assistant';
 
+/** Document cité par une réponse de l'assistant. */
+export interface SourceRef {
+  documentId: string;
+  title: string;
+  page: number | null;
+  snippet: string;
+}
+
 /** Message affiché dans l'UI (avec id local). */
 export interface ChatMessage {
   id: string;
   role: MessageRole;
   content: string;
+  sources?: SourceRef[];
   createdAt?: string;
 }
 
@@ -23,6 +32,7 @@ export interface ChatSuccessResponse {
   conversationId: string;
   messages: ApiChatMessage[];
   response: string;
+  sources?: SourceRef[];
 }
 
 export interface ChatErrorResponse {
@@ -44,6 +54,7 @@ export interface ConversationMessageDto {
   id: string;
   role: MessageRole;
   content: string;
+  sources?: SourceRef[];
   createdAt: string;
 }
 

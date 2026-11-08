@@ -1,5 +1,7 @@
 import { createSseParser } from '../lib/sse';
 import type { AuthResponse, AuthUser } from '../types/auth';
+import { mimeTypeForFile } from '../lib/documents';
+import type { DocumentItem, DocumentsListResponse } from '../types/documents';
 import type { MemoriesListResponse, MemoryItem } from '../types/memory';
 import type {
   ChatErrorResponse,
@@ -7,6 +9,7 @@ import type {
   ConversationDetail,
   ConversationSummary,
   ConversationsListResponse,
+  SourceRef,
 } from '../types/chat';
 
 export const DEFAULT_API_BASE_URL = 'http://localhost:3001';
@@ -132,6 +135,7 @@ export async function sendChatMessage(
 
 export interface ChatStreamHandlers {
   onMeta?: (conversationId: string) => void;
+  onSources?: (sources: SourceRef[]) => void;
   onDelta: (text: string) => void;
 }
 
@@ -178,6 +182,8 @@ export async function streamChatMessage(
     }
     if (event === 'meta') {
       handlers.onMeta?.((payload as { conversationId: string }).conversationId);
+    } else if (event === 'sources') {
+      handlers.onSources?.((payload as { sources: SourceRef[] }).sources);
     } else if (event === 'delta') {
       handlers.onDelta((payload as { text: string }).text);
     } else if (event === 'done') {
@@ -229,6 +235,28 @@ export async function deleteConversation(conversationId: string): Promise<void> 
     `/api/conversations/${encodeURIComponent(conversationId)}`,
     { method: 'DELETE' },
   );
+}
+
+export async function listDocuments(): Promise<DocumentItem[]> {
+  const data = await requestJson<DocumentsListResponse>('/api/documents');
+  return data.documents;
+}
+
+export async function uploadDocument(file: File): Promise<DocumentItem> {
+  const type = mimeTypeForFile(file);
+  if (!type) {
+    throw new ApiError('Format non pris en charge.', 415);
+  }
+  const data = await requestJson<{ document: DocumentItem }>('/api/documents', {
+    method: 'POST',
+    headers: { 'Content-Type': type, 'X-Filename': encodeURIComponent(file.name) },
+    body: file,
+  });
+  return data.document;
+}
+
+export async function deleteDocument(id: string): Promise<void> {
+  await requestJson<void>(`/api/documents/${encodeURIComponent(id)}`, { method: 'DELETE' });
 }
 
 export async function listMemories(): Promise<MemoryItem[]> {

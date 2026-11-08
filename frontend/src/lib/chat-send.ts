@@ -1,4 +1,4 @@
-import type { ChatMessage, ConversationSummary } from '../types/chat';
+import type { ChatMessage, ConversationSummary, SourceRef } from '../types/chat';
 import { pickMostRecentConversation } from './conversations';
 
 export function canMutateConversations(isSending: boolean): boolean {
@@ -109,13 +109,23 @@ export function applyStreamDelta(
   streamId: string,
   text: string,
   now: string = new Date().toISOString(),
+  sources: SourceRef[] = [],
 ): ChatMessage[] {
   const last = messages[messages.length - 1];
   if (last?.id === streamId) {
     return [...messages.slice(0, -1), { ...last, content: last.content + text }];
   }
 
-  return [...messages, { id: streamId, role: 'assistant', content: text, createdAt: now }];
+  return [
+    ...messages,
+    {
+      id: streamId,
+      role: 'assistant',
+      content: text,
+      ...(sources.length > 0 ? { sources } : {}),
+      createdAt: now,
+    },
+  ];
 }
 
 /** Retire la bulle en cours de génération (échec avant la fin de la réponse). */

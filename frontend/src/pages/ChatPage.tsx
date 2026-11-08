@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppShell } from '../components/layout/AppShell';
 import { ChatWindow } from '../components/chat/ChatWindow';
 import { ConversationSidebar } from '../components/conversations/ConversationSidebar';
+import { DocumentsPanel } from '../components/documents/DocumentsPanel';
 import { MemoryPanel } from '../components/memory/MemoryPanel';
 import {
   conversationHeaderTitle,
@@ -28,7 +29,7 @@ import {
   streamChatMessage,
 } from '../services/api';
 import type { AuthUser } from '../types/auth';
-import type { ChatMessage, ConversationSummary } from '../types/chat';
+import type { ChatMessage, ConversationSummary, SourceRef } from '../types/chat';
 
 function formatError(err: unknown): string {
   if (err instanceof ApiError) {
@@ -53,6 +54,7 @@ export function ChatPage({ user, onLogout }: ChatPageProps) {
   const [listError, setListError] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMemoryOpen, setIsMemoryOpen] = useState(false);
+  const [isDocumentsOpen, setIsDocumentsOpen] = useState(false);
   const [restoreDraft, setRestoreDraft] = useState<string | null>(null);
   const [restoreKey, setRestoreKey] = useState(0);
   const isSendingRef = useRef(false);
@@ -232,14 +234,20 @@ export function ChatPage({ user, onLogout }: ChatPageProps) {
 
     // Même identifiant que la bulle finale : elle ne se remonte pas à la fin du flux.
     let streamId = `stream-${Date.now()}`;
+    let streamSources: SourceRef[] = [];
 
     try {
       const result = await streamChatMessage(content, conversationAtSend, {
         onMeta: (id) => {
           streamId = `${id}-${messages.length + 1}-assistant`;
         },
+        onSources: (sources) => {
+          streamSources = sources;
+        },
         onDelta: (text) => {
-          setMessages((current) => applyStreamDelta(current, streamId, text));
+          setMessages((current) =>
+            applyStreamDelta(current, streamId, text, new Date().toISOString(), streamSources),
+          );
         },
       });
 
@@ -249,6 +257,7 @@ export function ChatPage({ user, onLogout }: ChatPageProps) {
           result.messages,
           result.conversationId,
           current,
+          result.sources ?? [],
         ),
       );
       await refreshConversations();
@@ -322,6 +331,13 @@ export function ChatPage({ user, onLogout }: ChatPageProps) {
           <button
             type="button"
             className="app-shell__logout"
+            onClick={() => setIsDocumentsOpen(true)}
+          >
+            Documents
+          </button>
+          <button
+            type="button"
+            className="app-shell__logout"
             onClick={() => setIsMemoryOpen(true)}
           >
             Mémoire
@@ -376,6 +392,12 @@ export function ChatPage({ user, onLogout }: ChatPageProps) {
           void handleSend(lastUser, { regenerate: true });
         }}
       />
+      {isDocumentsOpen ? (
+        <DocumentsPanel
+          onClose={() => setIsDocumentsOpen(false)}
+          onAuthFailure={handleAuthFailure}
+        />
+      ) : null}
       {isMemoryOpen ? (
         <MemoryPanel
           onClose={() => setIsMemoryOpen(false)}

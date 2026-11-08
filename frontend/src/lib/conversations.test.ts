@@ -306,3 +306,30 @@ describe('comportement refresh (sélection)', () => {
     expect(restored[0]?.content).toBe('Toujours là');
   });
 });
+
+describe('sources des réponses', () => {
+  const source = { documentId: 'd1', title: 'cours.pdf', page: 3, snippet: 'useMemo mémorise' };
+
+  it('garde les sources d’un message d’une conversation rechargée', () => {
+    const mapped = mapDetailMessagesToChatMessages([
+      { id: '1', role: 'user', content: 'Q', createdAt: '2026-01-01T10:00:00.000Z' },
+      { id: '2', role: 'assistant', content: 'R [1]', sources: [source], createdAt: '2026-01-01T10:00:01.000Z' },
+    ]);
+    expect(mapped[0]?.sources).toBeUndefined();
+    expect(mapped[1]?.sources).toEqual([source]);
+  });
+
+  it('rattache les sources de la réponse reçue au dernier message assistant seulement', () => {
+    const mapped = mapApiMessagesToChatMessages(
+      [
+        { role: 'user', content: 'Q' },
+        { role: 'assistant', content: 'R [1]' },
+      ],
+      'c1',
+      [],
+      [source],
+    );
+    expect(mapped[0]?.sources).toBeUndefined();
+    expect(mapped[1]?.sources).toEqual([source]);
+  });
+});

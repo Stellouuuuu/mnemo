@@ -3,6 +3,7 @@ import type {
   ChatMessage,
   ConversationMessageDto,
   ConversationSummary,
+  SourceRef,
 } from '../types/chat';
 
 /** Choisit la conversation la plus récemment mise à jour. */
@@ -37,6 +38,7 @@ export function mapDetailMessagesToChatMessages(
     id: message.id,
     role: message.role,
     content: message.content,
+    ...(message.sources ? { sources: message.sources } : {}),
     createdAt: message.createdAt,
   }));
 }
@@ -46,6 +48,7 @@ export function mapApiMessagesToChatMessages(
   messages: ApiChatMessage[],
   conversationId: string,
   previous: ChatMessage[] = [],
+  sources: SourceRef[] = [],
 ): ChatMessage[] {
   const now = new Date().toISOString();
 
@@ -60,6 +63,9 @@ export function mapApiMessagesToChatMessages(
       id: `${conversationId}-${index}-${message.role}`,
       role: message.role,
       content: message.content,
+      ...(sources.length > 0 && index === messages.length - 1 && message.role === 'assistant'
+        ? { sources }
+        : {}),
       createdAt: keptCreatedAt ?? now,
     };
   });

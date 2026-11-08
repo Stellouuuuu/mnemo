@@ -11,6 +11,7 @@ import {
 } from '../conversations/index.js';
 import { tryAcquireGenerationLock } from '../chat/generation-lock.js';
 import { selectRecentChatMessages } from '../chat/history-window.js';
+import { PROMPT_LEAK_REFUSAL, leaksSystemPrompt } from '../chat/prompt-leak-guard.js';
 import { env } from '../config/env.js';
 import { ConversationBusyError } from '../errors.js';
 import {
@@ -63,6 +64,8 @@ export type ConversationStreamEvent =
   | { type: 'meta'; conversationId: string }
   | { type: 'sources'; sources: SourceRef[] }
   | { type: 'delta'; text: string }
+  /** Le texte déjà envoyé est retiré et remplacé : la réponse reproduisait les instructions internes. */
+  | { type: 'replace'; text: string }
   | { type: 'done'; result: ConversationResult };
 
 export { ConversationNotFoundError, ConversationBusyError };
@@ -178,9 +181,10 @@ export class ConversationService {
       });
 
       const context = await this.prepareContext(input.userId, messagesForModel);
-      const response = await this.chatModel(context.ollamaMessages, {
+      const generated = await this.chatModel(context.ollamaMessages, {
         signal: input.signal,
       });
+      const response = leaksSystemPrompt(generated) ? PROMPT_LEAK_REFUSAL : generated;
 
       if (input.signal?.aborted) {
         throw new FetchAbortedError();
@@ -247,6 +251,12 @@ export class ConversationService {
         signal: input.signal,
       })) {
         response += text;
+        if (leaksSystemPrompt(response)) {
+          // Sortir de la boucle arrête la génération : le reste n'est jamais produit.
+          response = PROMPT_LEAK_REFUSAL;
+          yield { type: 'replace', text: response };
+          break;
+        }
         yield { type: 'delta', text };
       }
 

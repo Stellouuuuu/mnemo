@@ -19,6 +19,7 @@ import {
   findNewlyCreatedConversation,
   mergeSyncedMessagesAfterFailure,
   prepareMessagesForRegenerate,
+  replaceStreamMessage,
   retainMessagesOnSendFailure,
 } from '../lib/chat-send';
 import {
@@ -243,6 +244,9 @@ export function ChatPage({ user, onLogout }: ChatPageProps) {
         },
         onSources: (sources) => {
           streamSources = sources;
+        },
+        onReplace: (text) => {
+          setMessages((current) => replaceStreamMessage(current, streamId, text));
         },
         onDelta: (text) => {
           setMessages((current) =>

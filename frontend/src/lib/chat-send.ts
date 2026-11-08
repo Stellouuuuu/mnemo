@@ -128,6 +128,17 @@ export function applyStreamDelta(
   ];
 }
 
+/** Remplace tout le texte de la bulle en cours de génération. */
+export function replaceStreamMessage(
+  messages: ChatMessage[],
+  streamId: string,
+  text: string,
+): ChatMessage[] {
+  return messages.map((message) =>
+    message.id === streamId ? { ...message, content: text } : message,
+  );
+}
+
 /** Retire la bulle en cours de génération (échec avant la fin de la réponse). */
 export function dropStreamingMessage(
   messages: ChatMessage[],

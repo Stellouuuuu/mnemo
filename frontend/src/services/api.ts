@@ -136,6 +136,8 @@ export async function sendChatMessage(
 export interface ChatStreamHandlers {
   onMeta?: (conversationId: string) => void;
   onSources?: (sources: SourceRef[]) => void;
+  /** Remplace le texte déjà reçu (réponse bloquée par le serveur). */
+  onReplace?: (text: string) => void;
   onDelta: (text: string) => void;
 }
 
@@ -184,6 +186,8 @@ export async function streamChatMessage(
       handlers.onMeta?.((payload as { conversationId: string }).conversationId);
     } else if (event === 'sources') {
       handlers.onSources?.((payload as { sources: SourceRef[] }).sources);
+    } else if (event === 'replace') {
+      handlers.onReplace?.((payload as { text: string }).text);
     } else if (event === 'delta') {
       handlers.onDelta((payload as { text: string }).text);
     } else if (event === 'done') {

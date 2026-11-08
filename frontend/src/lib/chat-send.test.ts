@@ -4,6 +4,7 @@ import {
   appendOptimisticUserMessage,
   applyStreamDelta,
   dropStreamingMessage,
+  replaceStreamMessage,
   canMutateConversations,
   findLastUserContent,
   findNewlyCreatedConversation,
@@ -141,5 +142,15 @@ describe('applyStreamDelta avec sources', () => {
     expect(messages[1]?.sources).toEqual([source]);
     expect(applyStreamDelta(messages, 's-1', 'jour')[1]?.sources).toEqual([source]);
     expect(applyStreamDelta([userMsg('Q')], 's-2', 'x')[1]?.sources).toBeUndefined();
+  });
+});
+
+describe('replaceStreamMessage', () => {
+  it('remplace le texte de la bulle en cours et rien d\'autre', () => {
+    const messages = applyStreamDelta([userMsg('Q')], 's-1', 'texte qui fuit');
+    const replaced = replaceStreamMessage(messages, 's-1', 'Réponse bloquée');
+    expect(replaced[1]?.content).toBe('Réponse bloquée');
+    expect(replaced[0]).toEqual(userMsg('Q'));
+    expect(messages[1]?.content).toBe('texte qui fuit');
   });
 });

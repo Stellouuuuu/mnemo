@@ -172,6 +172,8 @@ export function createChatRouter(conversationService: ConversationService): Rout
           writeSse(res, 'meta', { conversationId: event.conversationId });
         } else if (event.type === 'sources') {
           writeSse(res, 'sources', { sources: event.sources });
+        } else if (event.type === 'replace') {
+          writeSse(res, 'replace', { text: event.text });
         } else if (event.type === 'delta') {
           writeSse(res, 'delta', { text: event.text });
         } else {

@@ -101,6 +101,7 @@ export function createChatRouter(conversationService: ConversationService): Rout
         conversationId: result.conversationId,
         messages: result.messages,
         response: result.response,
+        sources: result.sources,
       });
     } catch (error) {
       if (error instanceof FetchAbortedError || abortController.signal.aborted) {
@@ -169,6 +170,8 @@ export function createChatRouter(conversationService: ConversationService): Rout
         start();
         if (event.type === 'meta') {
           writeSse(res, 'meta', { conversationId: event.conversationId });
+        } else if (event.type === 'sources') {
+          writeSse(res, 'sources', { sources: event.sources });
         } else if (event.type === 'delta') {
           writeSse(res, 'delta', { text: event.text });
         } else {

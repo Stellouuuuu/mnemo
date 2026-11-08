@@ -96,6 +96,7 @@ export function createConversationsRouter(
           id: message.id,
           role: message.role,
           content: message.content,
+          ...(message.sources ? { sources: message.sources } : {}),
           createdAt: message.createdAt.toISOString(),
         })),
       });

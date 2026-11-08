@@ -106,6 +106,7 @@ export class InMemoryConversationStore implements ConversationStore {
       conversationId: input.conversationId,
       role: input.role,
       content: input.content,
+      ...(input.sources && input.sources.length > 0 ? { sources: input.sources } : {}),
       createdAt: new Date(),
     };
 

@@ -10,12 +10,18 @@ import {
   InMemoryConversationStore,
   PostgresConversationStore,
 } from '../conversations/index.js';
+import {
+  InMemoryKnowledgeStore,
+  KnowledgeService,
+  OllamaEmbedder,
+  PostgresKnowledgeStore,
+} from '../knowledge/index.js';
 import { AuthService } from '../auth/auth.service.js';
 import { PostgresSessionStore } from '../auth/postgres-session-store.js';
 import { env } from '../config/env.js';
 import { createPoolFromEnv } from '../db/pool.js';
 import { ConversationService } from './conversation.service.js';
-import { chatWithOllama } from './ollama.service.js';
+import { chatWithOllama, streamChatWithOllama } from './ollama.service.js';
 
 /**
  * Assemblage des services partagés.
@@ -40,18 +46,25 @@ const conversationHistoryService = createDefaultConversationService(
 
 const memoryExtractor = new OllamaMemoryExtractor(chatWithOllama);
 
+const knowledgeService = new KnowledgeService(
+  sharedPool ? new PostgresKnowledgeStore(sharedPool) : new InMemoryKnowledgeStore(),
+  new OllamaEmbedder(),
+);
+
 export const conversationService = new ConversationService(
   memoryService,
   chatWithOllama,
   memoryExtractor,
   conversationHistoryService,
+  streamChatWithOllama,
+  knowledgeService,
 );
 
 export const authService = sharedPool
   ? new AuthService(sharedPool, new PostgresSessionStore(sharedPool))
   : null;
 
-export { memoryService, conversationHistoryService, sharedPool };
+export { memoryService, conversationHistoryService, knowledgeService, sharedPool };
 
 export async function closeSharedResources(): Promise<void> {
   if (!sharedPool || poolClosed) {

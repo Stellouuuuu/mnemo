@@ -1,0 +1,18 @@
+{
+  "relevant": [
+    { "q": "Quand est-ce que useEffect est exécuté sans tableau de dépendances ?", "expect": "après chaque rendu" },
+    { "q": "Qu'est-ce que la troisième forme normale ?", "expect": "troisième forme normale" },
+    { "q": "Que fait une clé étrangère en cas de suppression ?", "expect": "cascade" },
+    { "q": "Quels codes HTTP indiquent une erreur du serveur ?", "expect": "5xx" },
+    { "q": "À quoi sert l'en-tête Access-Control-Allow-Origin ?", "expect": "access-control-allow-origin" },
+    { "q": "Comment modifier l'état d'un composant React ?", "expect": "fonction de mise à jour" }
+  ],
+  "offTopic": [
+    "Quel est le meilleur restaurant de Paris ?",
+    "Écris un poème sur l'automne.",
+    "Comment fonctionne un moteur à explosion ?",
+    "Quelle est la distance entre la Terre et la Lune ?",
+    "Peux-tu me conseiller un film à regarder ce soir ?",
+    "Comment faire pousser des tomates sur un balcon ?"
+  ]
+}

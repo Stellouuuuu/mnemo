@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import type { SourceRef } from '../knowledge/types.js';
 import type { Pool, PoolClient, QueryResultRow } from 'pg';
 import type { ChatMessage, ChatRole } from '../types/chat.js';
 import type { ConversationStore } from './conversation-store.js';
@@ -29,6 +30,7 @@ interface MessageRow extends QueryResultRow {
   conversation_id: string;
   role: ChatRole;
   content: string;
+  sources: SourceRef[] | null;
   created_at: Date;
 }
 
@@ -55,6 +57,7 @@ function mapMessage(row: MessageRow): ConversationMessage {
     conversationId: row.conversation_id,
     role: row.role,
     content: row.content,
+    ...(row.sources && row.sources.length > 0 ? { sources: row.sources } : {}),
     createdAt: row.created_at,
   };
 }
@@ -131,7 +134,7 @@ export class PostgresConversationStore implements ConversationStore {
 
   async listMessages(conversationId: string): Promise<ConversationMessage[]> {
     const result = await this.pool.query<MessageRow>(
-      `SELECT id, conversation_id, role, content, created_at
+      `SELECT id, conversation_id, role, content, sources, created_at
        FROM messages
        WHERE conversation_id = $1
        ORDER BY created_at ASC, id ASC`,
@@ -150,10 +153,16 @@ export class PostgresConversationStore implements ConversationStore {
 
       const id = randomUUID();
       const result = await client.query<MessageRow>(
-        `INSERT INTO messages (id, conversation_id, role, content)
-         VALUES ($1, $2, $3, $4)
-         RETURNING id, conversation_id, role, content, created_at`,
-        [id, input.conversationId, input.role, input.content],
+        `INSERT INTO messages (id, conversation_id, role, content, sources)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING id, conversation_id, role, content, sources, created_at`,
+        [
+          id,
+          input.conversationId,
+          input.role,
+          input.content,
+          input.sources && input.sources.length > 0 ? JSON.stringify(input.sources) : null,
+        ],
       );
 
       await client.query(
@@ -184,7 +193,7 @@ export class PostgresConversationStore implements ConversationStore {
       await this.lockConversation(client, conversationId);
 
       const storedResult = await client.query<MessageRow>(
-        `SELECT id, conversation_id, role, content, created_at
+        `SELECT id, conversation_id, role, content, sources, created_at
          FROM messages
          WHERE conversation_id = $1
          ORDER BY created_at ASC, id ASC`,
@@ -199,7 +208,7 @@ export class PostgresConversationStore implements ConversationStore {
         const result = await client.query<MessageRow>(
           `INSERT INTO messages (id, conversation_id, role, content)
            VALUES ($1, $2, $3, $4)
-           RETURNING id, conversation_id, role, content, created_at`,
+           RETURNING id, conversation_id, role, content, sources, created_at`,
           [id, conversationId, message.role, message.content],
         );
         created.push(mapMessage(result.rows[0]!));

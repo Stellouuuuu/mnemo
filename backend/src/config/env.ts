@@ -74,6 +74,20 @@ export const env = {
   OLLAMA_MAX_CONCURRENT: readEnvNumber('OLLAMA_MAX_CONCURRENT', 2),
   /** Température de génération (0.4 : plus stable qu’à 0.7, encore naturel). */
   OLLAMA_TEMPERATURE: readEnvNumber('OLLAMA_TEMPERATURE', 0.4),
+  /** Modèle d'embeddings Ollama (1024 dimensions : doit correspondre à la migration 005). */
+  EMBEDDING_MODEL: readEnv('EMBEDDING_MODEL', 'bge-m3'),
+  /** Délai d'un appel d'embeddings (ms). */
+  EMBEDDING_TIMEOUT_MS: readEnvNumber('EMBEDDING_TIMEOUT_MS', 60_000),
+  /** Nombre de passages retrouvés par question. */
+  RAG_TOP_K: readEnvNumber('RAG_TOP_K', 4),
+  /** Similarité minimale (0 à 1) pour qu'un passage trouvé par le sens soit gardé. */
+  RAG_MIN_SIMILARITY: readEnvNumber('RAG_MIN_SIMILARITY', 0.45),
+  /** Documents par utilisateur. */
+  RAG_MAX_DOCUMENTS_PER_USER: readEnvNumber('RAG_MAX_DOCUMENTS_PER_USER', 20),
+  /** Passages par document (borne le temps d'indexation). */
+  RAG_MAX_CHUNKS_PER_DOCUMENT: readEnvNumber('RAG_MAX_CHUNKS_PER_DOCUMENT', 400),
+  /** Budget caractères des extraits ajoutés au prompt. */
+  RAG_CONTEXT_MAX_CHARS: readEnvNumber('RAG_CONTEXT_MAX_CHARS', 4_000),
   /** Limite du body JSON Express (ex. 256kb). */
   JSON_BODY_LIMIT: readEnv('JSON_BODY_LIMIT', '256kb'),
   /** Origine du frontend (CORS + credentials). */

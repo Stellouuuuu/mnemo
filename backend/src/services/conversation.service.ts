@@ -17,6 +17,9 @@ import {
   FetchAbortedError,
   combineAbortSignals,
 } from '../http/fetch-with-timeout.js';
+import type { KnowledgeService } from '../knowledge/knowledge.service.js';
+import { toSourceRef } from '../knowledge/knowledge.service.js';
+import type { RetrievedChunk, SourceRef } from '../knowledge/types.js';
 import { MNEMO_SYSTEM_PROMPT } from '../prompts/mnemo-system.js';
 import type { ChatMessage, OllamaChatMessage } from '../types/chat.js';
 import {
@@ -25,7 +28,11 @@ import {
   type ChatModelClient,
   type ChatModelStreamClient,
 } from './ollama.service.js';
-import { buildOllamaMessages, formatUserMemoryBlock } from './prompt-builder.js';
+import {
+  buildOllamaMessages,
+  formatKnowledgeBlock,
+  formatUserMemoryBlock,
+} from './prompt-builder.js';
 
 export interface ConversationInput {
   userId: string;
@@ -40,17 +47,21 @@ export interface ConversationContext {
   memories: Memory[];
   /** Messages réellement envoyés à Ollama (non exposés dans la réponse HTTP). */
   ollamaMessages: OllamaChatMessage[];
+  /** Documents dont des extraits ont été ajoutés au prompt. */
+  sources: SourceRef[];
 }
 
 export interface ConversationResult {
   conversationId: string;
   messages: ChatMessage[];
   response: string;
+  sources: SourceRef[];
 }
 
 /** Événements d'une réponse en flux : l'identifiant, puis des fragments, puis le résultat final. */
 export type ConversationStreamEvent =
   | { type: 'meta'; conversationId: string }
+  | { type: 'sources'; sources: SourceRef[] }
   | { type: 'delta'; text: string }
   | { type: 'done'; result: ConversationResult };
 
@@ -69,6 +80,7 @@ export class ConversationService {
       new InMemoryConversationStore(),
     ),
     private readonly chatModelStream: ChatModelStreamClient = streamChatWithOllama,
+    private readonly knowledge: KnowledgeService | null = null,
   ) {}
 
   async prepareContext(
@@ -76,8 +88,11 @@ export class ConversationService {
     messages: ChatMessage[],
   ): Promise<ConversationContext> {
     const memories = await this.memoryService.getMemories(userId);
+    const knowledge = await this.retrieveKnowledge(userId, messages);
     const memoryBlock = formatUserMemoryBlock(memories);
-    const reserved = MNEMO_SYSTEM_PROMPT.length + (memoryBlock?.length ?? 0);
+    const knowledgeBlock = formatKnowledgeBlock(knowledge);
+    const reserved =
+      MNEMO_SYSTEM_PROMPT.length + (memoryBlock?.length ?? 0) + (knowledgeBlock?.length ?? 0);
     const historyBudget = Math.max(0, env.CHAT_MAX_PROMPT_CHARS - reserved);
     const historyForModel = selectRecentChatMessages(
       messages,
@@ -88,6 +103,7 @@ export class ConversationService {
       systemPrompt: MNEMO_SYSTEM_PROMPT,
       memories,
       messages: historyForModel,
+      knowledge,
     });
 
     return {
@@ -95,7 +111,44 @@ export class ConversationService {
       messages,
       memories,
       ollamaMessages,
+      sources: knowledge.map(toSourceRef),
     };
+  }
+
+  /**
+   * Passages des documents de l'utilisateur utiles à sa dernière question. Une panne de la
+   * recherche ne doit jamais empêcher de répondre : on répond alors sans documents.
+   */
+  private async retrieveKnowledge(
+    userId: string,
+    messages: ChatMessage[],
+  ): Promise<RetrievedChunk[]> {
+    if (!this.knowledge) {
+      return [];
+    }
+    const question = [...messages].reverse().find((m) => m.role === 'user')?.content;
+    if (!question) {
+      return [];
+    }
+
+    try {
+      if (!(await this.knowledge.hasDocuments(userId))) {
+        return [];
+      }
+      const found = await this.knowledge.search(userId, question);
+      const kept: RetrievedChunk[] = [];
+      let used = 0;
+      for (const chunk of found) {
+        if (used + chunk.content.length > env.RAG_CONTEXT_MAX_CHARS && kept.length > 0) {
+          break;
+        }
+        kept.push(chunk);
+        used += chunk.content.length;
+      }
+      return kept;
+    } catch {
+      return [];
+    }
   }
 
   async chat(input: ConversationInput): Promise<ConversationResult> {
@@ -137,6 +190,7 @@ export class ConversationService {
         conversationId,
         role: 'assistant',
         content: response,
+        sources: context.sources,
       });
 
       const persisted = await this.conversationHistory.listMessages(conversationId);
@@ -145,6 +199,7 @@ export class ConversationService {
         conversationId,
         messages: persisted.map(({ role, content }) => ({ role, content })),
         response,
+        sources: context.sources,
       };
     } finally {
       releaseLock();
@@ -184,6 +239,9 @@ export class ConversationService {
       });
 
       const context = await this.prepareContext(input.userId, messagesForModel);
+      if (context.sources.length > 0) {
+        yield { type: 'sources', sources: context.sources };
+      }
       let response = '';
       for await (const text of this.chatModelStream(context.ollamaMessages, {
         signal: input.signal,
@@ -200,6 +258,7 @@ export class ConversationService {
         conversationId,
         role: 'assistant',
         content: response,
+        sources: context.sources,
       });
       const persisted = await this.conversationHistory.listMessages(conversationId);
 
@@ -209,6 +268,7 @@ export class ConversationService {
           conversationId,
           messages: persisted.map(({ role, content }) => ({ role, content })),
           response,
+          sources: context.sources,
         },
       };
     } finally {

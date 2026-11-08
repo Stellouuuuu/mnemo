@@ -92,6 +92,7 @@ export class ConversationService {
       conversationId: input.conversationId.trim(),
       role: input.role,
       content: input.content.trim(),
+      sources: input.sources,
     });
   }
 

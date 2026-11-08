@@ -1,0 +1,32 @@
+{
+  "relevant": [
+    { "q": "À quoi sert useMemo ?", "expect": "usememo mémorise" },
+    { "q": "Quelle est la différence entre useMemo et useCallback ?", "expect": "usecallback fait la même chose" },
+    { "q": "Quand l'effet de useEffect s'exécute-t-il si je donne un tableau vide ?", "expect": "tableau vide" },
+    { "q": "Comment éviter les fuites de mémoire avec un abonnement dans un composant ?", "expect": "fonction de nettoyage" },
+    { "q": "Comment donner le focus à un champ de saisie ?", "expect": "useref" },
+    { "q": "Pourquoi ne peut-on pas appeler un hook dans une boucle ?", "expect": "ordre des appels" },
+    { "q": "Quelle est la différence entre WHERE et HAVING ?", "expect": "having filtre" },
+    { "q": "Que renvoie un LEFT JOIN quand il n'y a pas de correspondance ?", "expect": "valeurs null" },
+    { "q": "Pourquoi un index ralentit-il les écritures ?", "expect": "mis à jour à chaque insertion" },
+    { "q": "Que signifie le sigle ACID ?", "expect": "atomicité" },
+    { "q": "Comment se protéger d'une injection SQL ?", "expect": "requêtes paramétrées" },
+    { "q": "Quelle méthode HTTP est idempotente ?", "expect": "idempotente" },
+    { "q": "Que veut dire une erreur 404 ?", "expect": "introuvable" },
+    { "q": "Comment un nom de domaine devient-il une adresse IP ?", "expect": "dns traduit" },
+    { "q": "À quoi sert l'attribut HttpOnly d'un cookie ?", "expect": "httponly interdit" },
+    { "q": "Qu'est-ce qui distingue HTTPS de HTTP ?", "expect": "certificat" }
+  ],
+  "offTopic": [
+    "Quelle est la capitale du Japon ?",
+    "Donne-moi une recette de crêpes.",
+    "Qui a gagné la coupe du monde de football en 2018 ?",
+    "Explique la photosynthèse.",
+    "Comment écrire une boucle en Python ?",
+    "Quel temps fait-il à Lyon en novembre ?",
+    "Raconte-moi une blague sur les chats.",
+    "Combien de planètes y a-t-il dans le système solaire ?",
+    "Comment apprendre la guitare rapidement ?",
+    "Quelle est la meilleure façon de réviser un examen ?"
+  ]
+}

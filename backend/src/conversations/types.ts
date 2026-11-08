@@ -1,3 +1,4 @@
+import type { SourceRef } from '../knowledge/types.js';
 import type { ChatRole } from '../types/chat.js';
 
 export interface User {
@@ -18,6 +19,8 @@ export interface ConversationMessage {
   conversationId: string;
   role: ChatRole;
   content: string;
+  /** Documents cités par cette réponse de l'assistant. */
+  sources?: SourceRef[];
   createdAt: Date;
 }
 
@@ -30,6 +33,7 @@ export interface AppendMessageInput {
   conversationId: string;
   role: ChatRole;
   content: string;
+  sources?: SourceRef[];
 }
 
 export interface ConversationWithMessages extends Conversation {

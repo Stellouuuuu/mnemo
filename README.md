@@ -3,10 +3,14 @@
 Assistant IA personnel **local** — sans API commerciale payante (pas d’OpenAI, Anthropic, etc. pour le cœur du produit).
 
 > **Repo :** [Stellouuuuu/stella-ai](https://github.com/Stellouuuuu/stella-ai)  
-> **Phase actuelle : v0.3, mémoire persistante.** Le chat en streaming, les conversations, l'authentification et la mémoire fonctionnent. Il reste l'écran de mémoire.  
+> **Phase actuelle : v0.3 terminée, prochaine étape v0.4 (documents et RAG).** Le chat en streaming, les conversations, l'authentification et la mémoire (avec son écran de contrôle) fonctionnent.  
 > **Workflow :** push sur GitHub dès qu’une étape (checklist) fonctionne.
 
 ---
+
+![Écran de mémoire de Mnemo](docs/images/memory-panel.png)
+
+*L'écran « Ce que Mnemo sait de vous » : l'utilisateur voit, corrige ou efface ce qui est retenu.*
 
 ## Deux documents à lire en premier
 

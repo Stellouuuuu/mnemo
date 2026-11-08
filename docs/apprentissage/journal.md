@@ -4,6 +4,34 @@ Les entrées les plus récentes en haut.
 
 ---
 
+## 2026-11-08 - Écran de mémoire (fin de la v0.3)
+
+**Version / phase :** v0.3 terminée
+
+**Ce qui a changé :**
+
+- Nouvelles routes `GET /api/memories`, `PATCH /api/memories/:id`, `DELETE /api/memories/:id` et `DELETE /api/memories` : chaque utilisateur ne voit et ne modifie que ses propres souvenirs (un souvenir d'un autre compte répond 404, comme pour les conversations).
+- Une correction passe par les mêmes filtres que l'extraction automatique : on ne peut pas enregistrer une valeur vide, trop longue ou non informative (par exemple "mon prénom").
+- Bouton "Mémoire" dans l'en-tête : liste des souvenirs, modifier, oublier, tout oublier (avec confirmation).
+
+**Exemples de bons et de mauvais souvenirs (essai réel avec le modèle local) :**
+
+| Message | Retenu | Verdict |
+|---|---|---|
+| "Je m'appelle Sarah et je suis étudiante en informatique." | prénom = Sarah, études = informatique | bon |
+| "J'habite à Lyon et mon objectif est de devenir ingénieure en sécurité." | lieu = Lyon, objectif = devenir ingénieure en sécurité | bon |
+| même message | "étudiante" n'a pas été retenu comme métier | oubli acceptable : mieux vaut oublier que retenir à tort |
+| "Comment je m'appelle ?" | rien | bon : une question n'est pas une information |
+| "mon prénom" saisi à la main dans l'écran | refusé (400) | bon : valeur non informative |
+
+**Ce que j'ai appris :** le filtre de l'extracteur est volontairement strict. Il laisse passer moins de souvenirs, mais il évite de stocker des déductions fausses. L'écran de mémoire est le complément : l'utilisateur garde le dernier mot.
+
+**Vérifié :** 207 tests backend (dont Postgres), 69 tests frontend, et un parcours réel dans un navigateur (modifier "Sarah" en "Julie", oublier "Lyon", fermer avec Échap), contrôlé en base.
+
+**Ce qui reste :** v0.4 (RAG avec pgvector).
+
+---
+
 ## 2026-11-08 - Streaming des réponses
 
 **Version / phase :** v0.1 et v0.2 terminées

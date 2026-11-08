@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppShell } from '../components/layout/AppShell';
 import { ChatWindow } from '../components/chat/ChatWindow';
 import { ConversationSidebar } from '../components/conversations/ConversationSidebar';
+import { MemoryPanel } from '../components/memory/MemoryPanel';
 import {
   conversationHeaderTitle,
   mapApiMessagesToChatMessages,
@@ -51,6 +52,7 @@ export function ChatPage({ user, onLogout }: ChatPageProps) {
   const [error, setError] = useState<string | null>(null);
   const [listError, setListError] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isMemoryOpen, setIsMemoryOpen] = useState(false);
   const [restoreDraft, setRestoreDraft] = useState<string | null>(null);
   const [restoreKey, setRestoreKey] = useState(0);
   const isSendingRef = useRef(false);
@@ -317,6 +319,13 @@ export function ChatPage({ user, onLogout }: ChatPageProps) {
               {user.email}
             </span>
           ) : null}
+          <button
+            type="button"
+            className="app-shell__logout"
+            onClick={() => setIsMemoryOpen(true)}
+          >
+            Mémoire
+          </button>
           <button type="button" className="app-shell__logout" onClick={onLogout}>
             Déconnexion
           </button>
@@ -367,6 +376,12 @@ export function ChatPage({ user, onLogout }: ChatPageProps) {
           void handleSend(lastUser, { regenerate: true });
         }}
       />
+      {isMemoryOpen ? (
+        <MemoryPanel
+          onClose={() => setIsMemoryOpen(false)}
+          onAuthFailure={handleAuthFailure}
+        />
+      ) : null}
     </AppShell>
   );
 }

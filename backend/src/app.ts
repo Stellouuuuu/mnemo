@@ -12,10 +12,12 @@ import { securityHeaders } from './middleware/security-headers.js';
 import { createAuthRouter } from './routes/auth.routes.js';
 import { createChatRouter } from './routes/chat.routes.js';
 import { createConversationsRouter } from './routes/conversations.routes.js';
+import { createMemoriesRouter } from './routes/memories.routes.js';
 import {
   authService,
   conversationHistoryService,
   conversationService,
+  memoryService,
   sharedPool,
 } from './services/container.js';
 import {
@@ -68,6 +70,8 @@ app.use(
   requireAuth,
   createConversationsRouter(conversationHistoryService),
 );
+
+app.use('/api/memories', requireAuth, createMemoriesRouter(memoryService));
 
 const jsonTooLargeHandler: ErrorRequestHandler = (err, _req, res, next) => {
   if (isEntityTooLarge(err)) {

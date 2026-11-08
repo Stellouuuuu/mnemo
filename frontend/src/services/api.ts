@@ -1,5 +1,6 @@
 import { createSseParser } from '../lib/sse';
 import type { AuthResponse, AuthUser } from '../types/auth';
+import type { MemoriesListResponse, MemoryItem } from '../types/memory';
 import type {
   ChatErrorResponse,
   ChatSuccessResponse,
@@ -228,6 +229,32 @@ export async function deleteConversation(conversationId: string): Promise<void> 
     `/api/conversations/${encodeURIComponent(conversationId)}`,
     { method: 'DELETE' },
   );
+}
+
+export async function listMemories(): Promise<MemoryItem[]> {
+  const data = await requestJson<MemoriesListResponse>('/api/memories');
+  return data.memories;
+}
+
+export async function updateMemory(id: string, value: string): Promise<MemoryItem> {
+  const data = await requestJson<{ memory: MemoryItem }>(
+    `/api/memories/${encodeURIComponent(id)}`,
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value }),
+    },
+  );
+  return data.memory;
+}
+
+export async function deleteMemory(id: string): Promise<void> {
+  await requestJson<void>(`/api/memories/${encodeURIComponent(id)}`, { method: 'DELETE' });
+}
+
+export async function clearMemories(): Promise<number> {
+  const data = await requestJson<{ deleted: number }>('/api/memories', { method: 'DELETE' });
+  return data.deleted;
 }
 
 export function getApiBaseUrl(): string {

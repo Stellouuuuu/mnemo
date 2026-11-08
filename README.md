@@ -120,6 +120,10 @@ DATABASE_URL=... npx tsx eval/hybrid-eval.ts [questions-heldout.json]
 
 ---
 
+## Sécurité
+
+Chaque version est scannée avec [AegisAI](https://github.com/Stellouuuuu/aegisai). Premier audit (v0.4) : score de **45 à 74 puis 81 sur 100** après deux correctifs (règles du prompt, garde contre la fuite des instructions internes), l'isolation des documents entre utilisateurs n'ayant montré aucune faille. Détails, limites et ce qui n'a pas été corrigé : [`docs/securite/audit-v0.4.md`](docs/securite/audit-v0.4.md).
+
 ## Prochaine étape
 
 v0.5 : des outils (calcul, lecture de fichiers, recherche dans les documents) appelés par le modèle, avec des permissions et une confirmation pour les actions sensibles. Voir [docs/versions/](docs/versions/).

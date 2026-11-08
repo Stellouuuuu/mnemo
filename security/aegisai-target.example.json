@@ -1,0 +1,18 @@
+{
+  "url": "http://localhost:3001/api/chat",
+  "request_template": {"content": "{{PROMPT}}"},
+  "response_path": "$.response",
+  "timeout": 240,
+  "min_interval": 0,
+  "auth": {"type": "custom_headers", "headers": {"Cookie": "${MNEMO_COOKIE_A}"}},
+  "second_auth": {"type": "custom_headers", "headers": {"Cookie": "${MNEMO_COOKIE_B}"}},
+  "ingest": {
+    "url": "http://localhost:3001/api/documents",
+    "request_template": "{{DOCUMENT}}",
+    "content_type": "text/plain",
+    "headers": {"X-Filename": "{{DOC_ID}}.txt"},
+    "id_path": "$.document.id",
+    "delete_url": "http://localhost:3001/api/documents/{{DOC_ID}}"
+  },
+  "system_prompt_markers": ["Stella (utilisateur)"]
+}

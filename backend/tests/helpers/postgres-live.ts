@@ -4,12 +4,12 @@ import { runMigrations } from '../../src/db/migrate.js';
 import { createPoolFromEnv } from '../../src/db/pool.js';
 
 export function isPostgresRequired(): boolean {
-  return process.env.STELLA_REQUIRE_POSTGRES === '1';
+  return process.env.MNEMO_REQUIRE_POSTGRES === '1';
 }
 
 /**
  * Ouvre un pool live, applique les migrations.
- * En mode test:postgres (STELLA_REQUIRE_POSTGRES=1) : throw si indisponible.
+ * En mode test:postgres (MNEMO_REQUIRE_POSTGRES=1) : throw si indisponible.
  */
 export async function tryCreateLivePostgresPool(): Promise<Pool | null> {
   const required = isPostgresRequired();

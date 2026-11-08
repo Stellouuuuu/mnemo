@@ -1,6 +1,6 @@
 import type { ConversationSummary } from '../../types/chat';
 import { formatConversationUpdatedAt } from '../../lib/conversations';
-import { StellaMark } from '../brand/StellaMark';
+import { MnemoMark } from '../brand/MnemoMark';
 
 interface ConversationSidebarProps {
   conversations: ConversationSummary[];
@@ -36,9 +36,9 @@ export function ConversationSidebar({
     >
       <div className="conversation-sidebar__toolbar">
         <div className="conversation-sidebar__brand">
-          <StellaMark size="sm" />
+          <MnemoMark size="sm" />
           <div className="conversation-sidebar__brand-text">
-            <p className="conversation-sidebar__wordmark">STELLA</p>
+            <p className="conversation-sidebar__wordmark">Mnemo</p>
             <p className="conversation-sidebar__tag">Assistante locale</p>
           </div>
           {onClose ? (

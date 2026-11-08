@@ -24,13 +24,13 @@ On **utilise** un modèle OSS, et on **apprend** les bases dans `ai-lab/` (mini 
 
 ## Pourquoi un Modelfile Ollama ?
 
-Un Modelfile dit : « prends ce modèle de base + ces paramètres + ce SYSTEM prompt = mon modèle nommé `stella` ».
+Un Modelfile dit : « prends ce modèle de base + ces paramètres + ce SYSTEM prompt = mon modèle nommé `mnemo` ».
 
 Ce n’est **pas** un fine-tuning. C’est une configuration réutilisable.
 
 | Dans le Modelfile | Dans l’application (plus tard) |
 |-------------------|--------------------------------|
-| Qui est STELLA | Qui est l’utilisateur connecté |
+| Qui est Mnemo | Qui est l’utilisateur connecté |
 | Ton / domaines | Historique de conversation |
 | Temperature, etc. | Mémoire, RAG, outils |
 
@@ -68,7 +68,7 @@ Exemple : « créer une conversation » = backend.
 
 ## Pourquoi `ai-lab/` à part ?
 
-Pour pouvoir casser des choses en apprenant (mini transformer, tokenizer…) **sans** rendre STELLA inutilisable.
+Pour pouvoir casser des choses en apprenant (mini transformer, tokenizer…) **sans** rendre Mnemo inutilisable.
 
 ---
 

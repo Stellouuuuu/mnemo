@@ -9,7 +9,7 @@ Explications **simples**. Tu affineras au fur et à mesure dans le journal et da
 Un modèle entraîné à prédire le *prochain token* (morceau de texte).  
 Il ne « comprend » pas comme un humain : il continue le texte de façon statistiquement plausible, guidé par le prompt et le contexte.
 
-**Dans STELLA :** le cerveau qui génère les réponses (Qwen, Gemma…).
+**Dans Mnemo :** le cerveau qui génère les réponses (Qwen, Gemma…).
 
 ---
 
@@ -36,7 +36,7 @@ Si l’historique est trop long → on tronque, résume, ou on s’appuie sur la
 Vecteur de nombres qui représente le *sens* d’un texte.  
 Deux textes proches en sens → vecteurs proches.
 
-**Dans STELLA (RAG) :** comparer ta question aux chunks de documents.
+**Dans Mnemo (RAG) :** comparer ta question aux chunks de documents.
 
 ---
 
@@ -101,4 +101,4 @@ Coûteux et délicat → version tardive (v0.8). RAG suffit souvent d’abord.
 
 Programme qui fait tourner des modèles locaux et expose une API simple.
 
-**Ce n’est pas STELLA** — c’est le moteur sous le capot.
+**Ce n’est pas Mnemo** — c’est le moteur sous le capot.

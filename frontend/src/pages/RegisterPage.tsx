@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { StellaMark } from '../components/brand/StellaMark';
+import { MnemoMark } from '../components/brand/MnemoMark';
 import {
   DISPLAY_NAME_MAX_LENGTH,
   PASSWORD_MAX_LENGTH,
@@ -46,8 +46,8 @@ export function RegisterPage({ onSuccess, onGoLogin }: RegisterPageProps) {
     <div className="auth-page">
       <form className="auth-form" onSubmit={(event) => void handleSubmit(event)}>
         <div className="auth-form__brand">
-          <StellaMark size="md" />
-          <h1 className="auth-form__title">STELLA AI</h1>
+          <MnemoMark size="md" />
+          <h1 className="auth-form__title">Mnemo</h1>
         </div>
         <p className="auth-form__lead">Créer un compte local.</p>
 

@@ -1,4 +1,4 @@
--- STELLA AI — persistance des conversations
+-- Mnemo — persistance des conversations
 CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()

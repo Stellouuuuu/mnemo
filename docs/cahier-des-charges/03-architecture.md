@@ -63,9 +63,9 @@
 
 ## Principe important
 
-> **Ollama n’est pas STELLA AI.**  
+> **Ollama n’est pas Mnemo.**  
 > Ollama = couche pour faire tourner le modèle.  
-> STELLA = l’application (UI + backend + mémoire + RAG + outils).
+> Mnemo = l’application (UI + backend + mémoire + RAG + outils).
 
 ---
 
@@ -74,7 +74,7 @@
 ```text
 Internet ❌ (pour le chat principal)
         │
-STELLA AI
+Mnemo
         │
         ▼
 Ton ordinateur

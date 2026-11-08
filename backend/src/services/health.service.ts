@@ -12,7 +12,7 @@ export interface DependencyCheck {
 
 export interface HealthReport {
   status: 'ok' | 'error';
-  service: 'stella-ai-backend';
+  service: 'mnemo-backend';
   checks: {
     postgres: DependencyCheck;
     ollama: DependencyCheck;
@@ -25,7 +25,7 @@ export interface PublicHealthCheck {
 
 export interface PublicHealthReport {
   status: 'ok' | 'error';
-  service: 'stella-ai-backend';
+  service: 'mnemo-backend';
   checks: {
     postgres: PublicHealthCheck;
     ollama: PublicHealthCheck;
@@ -91,7 +91,7 @@ export async function buildHealthReport(pool: Pool | undefined): Promise<HealthR
 
   return {
     status: failed ? 'error' : 'ok',
-    service: 'stella-ai-backend',
+    service: 'mnemo-backend',
     checks: { postgres, ollama },
   };
 }

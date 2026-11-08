@@ -1,6 +1,24 @@
-# Journal de bord — STELLA AI
+# Journal de bord - Mnemo (anciennement STELLA AI)
 
 Les entrées les plus récentes en haut.
+
+---
+
+## 2026-11-08 - Renommage en Mnemo et mise à jour de l'état réel
+
+**Version / phase :** v0.3 en cours
+
+**Ce qui a changé :**
+
+- Le projet s'appelle maintenant **Mnemo** (le nom évoque la mémoire, qui est au centre du produit). L'assistante porte le même nom.
+- Le code existant (authentification, conversations, mémoire, frontend) est enfin dans Git, en commits séparés.
+- Les checklists v0.1 à v0.3 reflètent le code réel. Les entrées plus bas gardent l'ancien nom : elles décrivent ce qui s'est passé à l'époque.
+
+**Ce qui reste :**
+
+- Streaming des réponses (v0.1 et v0.2).
+- Écran "ce que Mnemo sait de moi" et exemples de bons et mauvais souvenirs (v0.3).
+- Le modèle Ollama s'appelle encore `stella` : à recréer avec `ollama create mnemo -f ai-engine/Modelfile`, puis `OLLAMA_MODEL=mnemo:latest` dans `backend/.env`.
 
 ---
 

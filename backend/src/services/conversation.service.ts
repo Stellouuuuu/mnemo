@@ -17,7 +17,7 @@ import {
   FetchAbortedError,
   combineAbortSignals,
 } from '../http/fetch-with-timeout.js';
-import { STELLA_SYSTEM_PROMPT } from '../prompts/stella-system.js';
+import { MNEMO_SYSTEM_PROMPT } from '../prompts/mnemo-system.js';
 import type { ChatMessage, OllamaChatMessage } from '../types/chat.js';
 import {
   chatWithOllama,
@@ -68,7 +68,7 @@ export class ConversationService {
   ): Promise<ConversationContext> {
     const memories = await this.memoryService.getMemories(userId);
     const memoryBlock = formatUserMemoryBlock(memories);
-    const reserved = STELLA_SYSTEM_PROMPT.length + (memoryBlock?.length ?? 0);
+    const reserved = MNEMO_SYSTEM_PROMPT.length + (memoryBlock?.length ?? 0);
     const historyBudget = Math.max(0, env.CHAT_MAX_PROMPT_CHARS - reserved);
     const historyForModel = selectRecentChatMessages(
       messages,
@@ -76,7 +76,7 @@ export class ConversationService {
       historyBudget,
     );
     const ollamaMessages = buildOllamaMessages({
-      systemPrompt: STELLA_SYSTEM_PROMPT,
+      systemPrompt: MNEMO_SYSTEM_PROMPT,
       memories,
       messages: historyForModel,
     });

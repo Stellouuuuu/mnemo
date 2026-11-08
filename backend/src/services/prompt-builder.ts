@@ -40,7 +40,7 @@ export function formatUserMemoryBlock(memories: Memory[]): string | null {
 
 /**
  * Construit les messages Ollama :
- * 1. un seul message system = prompt STELLA
+ * 1. un seul message system = prompt Mnemo
  * 2. historique user/assistant, mémoire collée au dernier message user
  */
 export function buildOllamaMessages(input: PromptBuilderInput): OllamaChatMessage[] {

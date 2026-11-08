@@ -1,7 +1,7 @@
 import type { CookieOptions, Response } from 'express';
 import { env } from '../config/env.js';
 
-export const SESSION_COOKIE_NAME = 'stella_session';
+export const SESSION_COOKIE_NAME = 'mnemo_session';
 
 export function sessionCookieOptions(): CookieOptions {
   return {

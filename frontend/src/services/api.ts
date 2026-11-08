@@ -61,7 +61,7 @@ async function requestJson<T>(
       },
     });
   } catch {
-    throw new ApiError('Impossible de contacter le backend STELLA.', 0);
+    throw new ApiError('Impossible de contacter le backend Mnemo.', 0);
   }
 
   if (response.status === 204) {

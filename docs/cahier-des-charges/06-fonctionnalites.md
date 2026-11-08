@@ -30,7 +30,7 @@ Infos utiles entre conversations, ex. :
 
 ```text
 User prefers TypeScript
-User works on STELLA AI
+User works on Mnemo
 ```
 
 **Règle :** ne pas tout stocker. Décider *ce qui mérite d’être mémorisé*.
@@ -100,4 +100,4 @@ Chaque user : ses conversations, sa mémoire, ses docs.
 
 ## Priorité pédagogique « code »
 
-STELLA doit être particulièrement utile pour le développement logiciel (objectif étudiant / portfolio).
+Mnemo doit être particulièrement utile pour le développement logiciel (objectif étudiant / portfolio).

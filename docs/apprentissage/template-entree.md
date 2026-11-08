@@ -13,7 +13,7 @@ Copie ce bloc dans [`journal.md`](journal.md) à chaque session.
 **Ce que j’ai fait :**
 - 
 
-**Pourquoi (lien avec STELLA) :**
+**Pourquoi (lien avec Mnemo) :**
 - 
 
 **Ce que j’ai compris :**

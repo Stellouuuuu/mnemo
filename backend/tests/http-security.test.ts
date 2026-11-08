@@ -32,7 +32,7 @@ function securityApp(): express.Express {
   app.get('/health', (_req, res) => {
     const report: HealthReport = {
       status: 'error',
-      service: 'stella-ai-backend',
+      service: 'mnemo-backend',
       checks: {
         postgres: {
           status: 'error',

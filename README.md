@@ -1,10 +1,9 @@
-# STELLA AI
+# Mnemo
 
 Assistant IA personnel **local** — sans API commerciale payante (pas d’OpenAI, Anthropic, etc. pour le cœur du produit).
 
 > **Repo :** [Stellouuuuu/stella-ai](https://github.com/Stellouuuuu/stella-ai)  
-> **Phase actuelle : Phase 0 — Cahier des charges & architecture**  
-> On ne code pas encore. On clarifie le plan.  
+> **Phase actuelle : v0.3, mémoire persistante.** Le chat, les conversations, l'authentification et la mémoire fonctionnent. Il reste le streaming et l'écran de mémoire.  
 > **Workflow :** push sur GitHub dès qu’une étape (checklist) fonctionne.
 
 ---
@@ -28,7 +27,7 @@ Construire progressivement un système d’IA local (chat → mémoire → RAG �
 
 Deux branches d’apprentissage séparées :
 
-- **Produit** (`frontend/`, `backend/`, `ai-engine/`) — STELLA qui fonctionne
+- **Produit** (`frontend/`, `backend/`, `ai-engine/`) — Mnemo qui fonctionne
 - **Labo** (`ai-lab/`) — expériences pédagogiques (tokenizer, mini-LLM, etc.) sans casser l’app
 
 ---

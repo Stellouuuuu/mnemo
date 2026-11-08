@@ -13,7 +13,7 @@ export function resolveAuthBootFailure(err: unknown): AuthBootFailure {
     view: 'unavailable',
     message: isNetworkError(err)
       ? err.message
-      : 'Le backend STELLA est indisponible.',
+      : 'Le backend Mnemo est indisponible.',
   };
 }
 

@@ -1,4 +1,4 @@
-# Cahier d’apprentissage — STELLA AI
+# Cahier d’apprentissage — Mnemo
 
 Ce dossier est **pour toi**.
 

@@ -6,7 +6,7 @@
   "scripts": {
     "test": "tsx --test tests/**/*.test.ts",
     "test:unit": "tsx --test tests/**/*.test.ts",
-    "test:postgres": "STELLA_REQUIRE_POSTGRES=1 tsx --test tests/postgres-conversation-store.test.ts tests/postgres-memory-store.test.ts tests/postgres-auth.test.ts tests/postgres-conversation-engine.test.ts",
+    "test:postgres": "MNEMO_REQUIRE_POSTGRES=1 tsx --test tests/postgres-conversation-store.test.ts tests/postgres-memory-store.test.ts tests/postgres-auth.test.ts tests/postgres-conversation-engine.test.ts",
     "dev": "tsx watch src/server.ts",
     "build": "tsc && npm run build:copy-migrations",
     "build:copy-migrations": "mkdir -p dist/db/migrations && cp -f src/db/migrations/*.sql dist/db/migrations/",

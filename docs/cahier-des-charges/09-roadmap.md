@@ -19,7 +19,7 @@ On ne construit pas tout d’un coup.
 ## Vue v1.0
 
 ```text
-             STELLA AI
+             Mnemo
                  │
      ┌───────────┼───────────┐
      │           │           │

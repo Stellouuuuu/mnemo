@@ -2,7 +2,7 @@
 
 ## Vision
 
-**STELLA AI** est un assistant IA personnel qui tourne **principalement en local**, sans dépendre d’API commerciales payantes pour le cœur du produit.
+**Mnemo** est un assistant IA personnel qui tourne **principalement en local**, sans dépendre d’API commerciales payantes pour le cœur du produit.
 
 Ce n’est pas « juste un chatbot ».
 
@@ -24,7 +24,7 @@ On construit progressivement un **système** capable de :
 
 À la fin, pouvoir présenter :
 
-> **STELLA AI — Local AI Personal Assistant**
+> **Mnemo — Local AI Personal Assistant**
 
 avec :
 
@@ -60,12 +60,12 @@ LLM
 
 ---
 
-## Ce que STELLA n’est pas
+## Ce que Mnemo n’est pas
 
-| STELLA n’est pas… | Pourquoi |
+| Mnemo n’est pas… | Pourquoi |
 |-------------------|----------|
 | Un wrapper OpenAI | Objectif = local, indépendance |
-| Ollama lui-même | Ollama = runtime ; STELLA = l’application au-dessus |
+| Ollama lui-même | Ollama = runtime ; Mnemo = l’application au-dessus |
 | Un LLM entraîné from scratch dès le jour 1 | Trop coûteux ; on commence avec un modèle open source existant |
 | Un clone de ChatGPT en une semaine | On avance version par version |
 
@@ -73,6 +73,6 @@ LLM
 
 ## Promesse produit (simple)
 
-> Tu parles à STELLA sur ton PC.  
+> Tu parles à Mnemo sur ton PC.  
 > Elle répond avec un modèle local.  
 > Plus tard : elle se souvient, lit tes docs, utilise des outils.

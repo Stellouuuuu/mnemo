@@ -10,7 +10,7 @@ import {
 } from '../src/memory/index.js';
 import type { MemoryExtractor } from '../src/memory/memory-extractor.js';
 import type { MemoryCandidate } from '../src/memory/types.js';
-import { STELLA_SYSTEM_PROMPT } from '../src/prompts/stella-system.js';
+import { MNEMO_SYSTEM_PROMPT } from '../src/prompts/mnemo-system.js';
 import { ConversationService } from '../src/services/conversation.service.js';
 import type { ChatMessage, OllamaChatMessage } from '../src/types/chat.js';
 
@@ -129,9 +129,9 @@ describe('Schéma mémoire strict — bugs clés / invention', () => {
       captured.some((m) => m.content.trimStart().startsWith('<user_memory>')),
       false,
     );
-    assert.match(STELLA_SYSTEM_PROMPT, /ne le connais pas encore/i);
-    assert.match(STELLA_SYSTEM_PROMPT, /N'invente aucune information personnelle/i);
-    assert.match(STELLA_SYSTEM_PROMPT, /clé mémoire n'est jamais une valeur/i);
+    assert.match(MNEMO_SYSTEM_PROMPT, /ne le connais pas encore/i);
+    assert.match(MNEMO_SYSTEM_PROMPT, /N'invente aucune information personnelle/i);
+    assert.match(MNEMO_SYSTEM_PROMPT, /clé mémoire n'est jamais une valeur/i);
     assert.match(result.response, /ne connais pas encore ton prénom/i);
     assert.equal(/ton prénom est mon prénom/i.test(result.response), false);
   });

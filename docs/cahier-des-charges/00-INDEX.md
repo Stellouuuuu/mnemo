@@ -1,4 +1,4 @@
-# Cahier des charges — STELLA AI
+# Cahier des charges — Mnemo
 
 Ce dossier décrit **le produit** : ce qu’on construit, pourquoi, avec quelle architecture, et comment on saura que ça marche.
 
@@ -10,7 +10,7 @@ Ce n’est **pas** le journal d’apprentissage (voir `../apprentissage/`).
 
 | # | Document | Contenu |
 |---|----------|---------|
-| 01 | [Vision & objectifs](01-vision-objectifs.md) | Pourquoi STELLA, objectifs produit & pédagogiques |
+| 01 | [Vision & objectifs](01-vision-objectifs.md) | Pourquoi Mnemo, objectifs produit & pédagogiques |
 | 02 | [Périmètre & hors périmètre](02-perimetre.md) | Ce qu’on fait / ne fait pas (surtout au début) |
 | 03 | [Architecture](03-architecture.md) | Schéma global, rôles des composants |
 | 04 | [Contraintes machine](04-contraintes-machine.md) | RAM, GPU, modèles possibles — **à remplir** |

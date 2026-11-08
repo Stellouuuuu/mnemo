@@ -1,7 +1,7 @@
 import type { ChatMessage as ChatMessageType } from '../../types/chat';
 import { parseChatContent, type ChatContentBlock } from '../../lib/chat-content';
 import { formatMessageClock } from '../../lib/conversations';
-import { StellaMark } from '../brand/StellaMark';
+import { MnemoMark } from '../brand/MnemoMark';
 import { ChatCodeBlock } from './ChatCodeBlock';
 import { ChatMessageActions } from './ChatMessageActions';
 
@@ -90,8 +90,8 @@ export function ChatMessage({
         <>
           {showIdentity ? (
             <div className="chat-message__identity">
-              <StellaMark size="sm" />
-              <span className="chat-message__role">STELLA</span>
+              <MnemoMark size="sm" />
+              <span className="chat-message__role">Mnemo</span>
               {clock ? (
                 <time className="chat-message__time" dateTime={message.createdAt}>
                   {clock}

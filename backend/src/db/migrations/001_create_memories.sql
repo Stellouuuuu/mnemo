@@ -1,4 +1,4 @@
--- STELLA AI — mémoire persistante
+-- Mnemo — mémoire persistante
 CREATE TABLE IF NOT EXISTS memories (
   id UUID PRIMARY KEY,
   user_id TEXT NOT NULL,

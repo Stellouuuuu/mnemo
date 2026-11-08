@@ -9,7 +9,7 @@ import { isEligibleForMemoryExtraction } from './memory-schema.js';
 import { parseMemoryExtractionResponse } from './parse-memory-extraction.js';
 
 /**
- * Extraction via Ollama avec un prompt dédié (pas le prompt conversationnel STELLA).
+ * Extraction via Ollama avec un prompt dédié (pas le prompt conversationnel Mnemo).
  */
 export class OllamaMemoryExtractor implements MemoryExtractor {
   constructor(private readonly chatModel: ChatModelClient = chatWithOllama) {}

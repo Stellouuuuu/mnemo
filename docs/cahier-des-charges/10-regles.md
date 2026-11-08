@@ -6,7 +6,7 @@
 2. **Produit ≠ Labo** — les expériences from-scratch vont dans `ai-lab/`.
 3. **Version par version** — pas de RAG avant un chat stable.
 4. **Documenter le pourquoi** — chaque décision / échec notable → journal d’apprentissage.
-5. **Ollama ≠ STELLA** — on construit l’app au-dessus du runtime.
+5. **Ollama ≠ Mnemo** — on construit l’app au-dessus du runtime.
 6. **Pas de secrets dans Git** — `.env` ignoré, `.env.example` seulement.
 7. **Critères de validation** — une feature n’est finie que si la checklist passe.
 
@@ -16,7 +16,7 @@
 
 ### Vert — Produit
 
-Construire STELLA utilisable.
+Construire Mnemo utilisable.
 
 ### Bleu — Recherche
 

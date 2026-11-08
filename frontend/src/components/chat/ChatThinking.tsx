@@ -1,4 +1,4 @@
-import { StellaMark } from '../brand/StellaMark';
+import { MnemoMark } from '../brand/MnemoMark';
 
 export function ChatThinking() {
   return (
@@ -7,11 +7,11 @@ export function ChatThinking() {
       data-role="assistant"
       role="status"
       aria-live="polite"
-      aria-label="STELLA réfléchit"
+      aria-label="Mnemo réfléchit"
     >
       <div className="chat-message__identity">
-        <StellaMark size="sm" />
-        <span className="chat-message__role">STELLA</span>
+        <MnemoMark size="sm" />
+        <span className="chat-message__role">Mnemo</span>
       </div>
       <p className="chat-thinking-line">
         réfléchit

@@ -63,7 +63,7 @@ export async function closeSharedResources(): Promise<void> {
 }
 
 if (env.MEMORY_STORE === 'postgres') {
-  console.log('STELLA memory/conversation store: postgres');
+  console.log('Mnemo memory/conversation store: postgres');
 } else {
-  console.log('STELLA memory/conversation store: inmemory');
+  console.log('Mnemo memory/conversation store: inmemory');
 }

@@ -77,7 +77,7 @@ export function ChatInput({
         rows={1}
         value={value}
         disabled={disabled}
-        placeholder="Parler à STELLA…"
+        placeholder="Parler à Mnemo…"
         aria-label="Message"
         maxLength={CHAT_MAX_MESSAGE_CHARS}
         enterKeyHint="send"

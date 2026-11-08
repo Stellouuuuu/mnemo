@@ -1,6 +1,6 @@
 /**
  * Prompt dédié à l'extraction mémoire.
- * Distinct du system prompt conversationnel de STELLA.
+ * Distinct du system prompt conversationnel de Mnemo.
  */
 export const MEMORY_EXTRACTION_SYSTEM_PROMPT = `Tu es un extracteur de mémoire pour une assistante IA.
 Tu n'es PAS l'assistante conversationnelle. Tu n'écris pas de réponses à l'utilisateur.

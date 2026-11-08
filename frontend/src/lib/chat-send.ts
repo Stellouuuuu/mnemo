@@ -29,7 +29,7 @@ export function findLastUserContent(messages: ChatMessage[]): string | null {
   return null;
 }
 
-/** Retire la dernière réponse STELLA avant une régénération. */
+/** Retire la dernière réponse Mnemo avant une régénération. */
 export function prepareMessagesForRegenerate(
   messages: ChatMessage[],
 ): ChatMessage[] {

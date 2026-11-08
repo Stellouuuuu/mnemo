@@ -1,6 +1,6 @@
 # ai-lab
 
-Laboratoire pédagogique **séparé** de l’application STELLA.
+Laboratoire pédagogique **séparé** de l’application Mnemo.
 
 Ici on casse, on expérimente, on comprend.
 

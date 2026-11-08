@@ -22,7 +22,7 @@
 
 ---
 
-## Impact pour STELLA
+## Impact pour Mnemo
 
 | Point | Conséquence |
 |-------|-------------|
@@ -52,11 +52,11 @@ Candidats (ordre suggéré une fois le GPU OK) :
 - [ ] Llama 3.1 8B
 - [ ] Fallback CPU : modèle **3B** (ex. Qwen2.5 3B)
 
-**Choix retenu pour v0.1 :** `mistral:latest` → modèle custom **`stella:latest`** (Modelfile)  
+**Choix retenu pour v0.1 :** `mistral:latest` → modèle custom **`mnemo:latest`** (Modelfile)  
 **Raison :** déjà installé localement (4.4 Go), create/run OK, bon pour démarrer le chat  
-**Tag Ollama produit :** `stella` / `stella:latest`  
+**Tag Ollama produit :** `mnemo` / `mnemo:latest`  
 **Fichier :** `ai-engine/Modelfile`  
-**Note :** le SYSTEM définit l’identité STELLA ; l’identité user sera injectée par l’app (pas en dur dans le Modelfile)
+**Note :** le SYSTEM définit l’identité Mnemo ; l’identité user sera injectée par l’app (pas en dur dans le Modelfile)
 
 ---
 

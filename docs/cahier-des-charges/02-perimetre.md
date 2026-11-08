@@ -26,7 +26,7 @@
 | Vision dès v0.1 | Trop tôt ; après chat / mémoire / RAG |
 | App mobile native | Focus web d’abord |
 | Déploiement cloud obligatoire | Local first ; cloud optionnel plus tard |
-| Remplacer Cursor / Copilot entièrement | STELLA aide au code, ce n’est pas l’IDE |
+| Remplacer Cursor / Copilot entièrement | Mnemo aide au code, ce n’est pas l’IDE |
 
 ---
 

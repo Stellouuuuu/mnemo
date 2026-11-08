@@ -106,7 +106,7 @@ describe('régénération', () => {
     ).toBe('Suite');
   });
 
-  it('prepareMessagesForRegenerate retire la dernière réponse STELLA', () => {
+  it('prepareMessagesForRegenerate retire la dernière réponse Mnemo', () => {
     const messages = [userMsg('Bonjour'), assistantMsg('Salut')];
     const prepared = prepareMessagesForRegenerate(messages);
     expect(prepared).toEqual([userMsg('Bonjour')]);

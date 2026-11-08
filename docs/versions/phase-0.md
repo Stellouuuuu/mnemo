@@ -11,16 +11,16 @@
 - [x] Roadmap v0.1 → v1.0
 - [x] Cahier d’apprentissage créé (concepts + journal)
 - [x] Fiche machine remplie (`cahier-des-charges/04-contraintes-machine.md`)
-- [ ] Driver NVIDIA réparé (`nvidia-smi` OK) — *recommandé, pas bloquant si Mistral tourne*
-- [x] Premier modèle candidat choisi pour v0.1 → `mistral` + custom `stella` (Modelfile)
+- [x] Driver NVIDIA réparé (`nvidia-smi` OK)
+- [x] Premier modèle candidat choisi pour v0.1 → `mistral` + custom `mnemo` (Modelfile)
 - [x] Modelfile testé (`ollama create` / `ollama run`) + poussé
-- [ ] Phase 0 validée explicitement → go scaffold backend/frontend v0.1
+- [x] Phase 0 validée, v0.1 à v0.3 construites
 
 ## Critère de sortie
 
 Tu peux expliquer à voix haute en 2 minutes :
 
-1. Ce qu’est STELLA
+1. Ce qu’est Mnemo
 2. Pourquoi local
-3. Pourquoi Ollama n’est pas STELLA
+3. Pourquoi Ollama n’est pas Mnemo
 4. Ce que fera uniquement la v0.1

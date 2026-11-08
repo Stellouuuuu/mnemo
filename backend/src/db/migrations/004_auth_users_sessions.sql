@@ -1,4 +1,4 @@
--- STELLA AI — comptes (email/mot de passe) + sessions serveur
+-- Mnemo — comptes (email/mot de passe) + sessions serveur
 -- Les users anonymes existants (email IS NULL) restent en place, non connectables.
 
 ALTER TABLE users

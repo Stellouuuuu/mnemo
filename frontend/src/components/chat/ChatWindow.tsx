@@ -110,7 +110,7 @@ export function ChatWindow({
         >
           {messages.length === 0 && !showThinking && !statusMessage ? (
             <div className="chat-empty">
-              <div className="stella-orb" aria-hidden="true" />
+              <div className="mnemo-orb" aria-hidden="true" />
               <p className="chat-empty__title">Prête à vous écouter.</p>
               <p className="chat-window__empty">{emptyMessage}</p>
             </div>

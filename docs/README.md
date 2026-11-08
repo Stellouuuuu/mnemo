@@ -1,4 +1,4 @@
-# Documentation STELLA AI
+# Documentation Mnemo
 
 | Dossier | Rôle |
 |---------|------|

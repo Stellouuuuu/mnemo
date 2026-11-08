@@ -1,4 +1,4 @@
-# STELLA AI — Frontend
+# Mnemo — Frontend
 
 React + TypeScript + Vite.
 

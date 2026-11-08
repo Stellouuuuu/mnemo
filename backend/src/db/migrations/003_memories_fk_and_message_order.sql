@@ -1,4 +1,4 @@
--- STELLA AI — FK memories → users + index d'ordre des messages
+-- Mnemo — FK memories → users + index d'ordre des messages
 -- Compatible données existantes : backfill des users avant la contrainte.
 
 INSERT INTO users (id)

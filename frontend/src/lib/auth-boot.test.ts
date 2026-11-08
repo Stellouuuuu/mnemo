@@ -12,18 +12,18 @@ describe('bootstrap auth', () => {
   it('erreur réseau → unavailable (ne pas traiter comme session absente)', () => {
     expect(
       resolveAuthBootFailure(
-        new ApiError('Impossible de contacter le backend STELLA.', 0),
+        new ApiError('Impossible de contacter le backend Mnemo.', 0),
       ),
     ).toEqual({
       view: 'unavailable',
-      message: 'Impossible de contacter le backend STELLA.',
+      message: 'Impossible de contacter le backend Mnemo.',
     });
   });
 
   it('autre erreur serveur → unavailable', () => {
     expect(resolveAuthBootFailure(new ApiError('crash', 500))).toEqual({
       view: 'unavailable',
-      message: 'Le backend STELLA est indisponible.',
+      message: 'Le backend Mnemo est indisponible.',
     });
   });
 

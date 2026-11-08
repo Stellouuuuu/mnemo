@@ -1,19 +1,123 @@
 import type { ChatMessage as ChatMessageType } from '../../types/chat';
+import { parseChatContent, type ChatContentBlock } from '../../lib/chat-content';
+import { formatMessageClock } from '../../lib/conversations';
+import { StellaMark } from '../brand/StellaMark';
+import { ChatCodeBlock } from './ChatCodeBlock';
+import { ChatMessageActions } from './ChatMessageActions';
 
 interface ChatMessageProps {
   message: ChatMessageType;
+  showIdentity?: boolean;
+  actionsDisabled?: boolean;
+  canRegenerate?: boolean;
+  onRegenerate?: () => void;
 }
 
-export function ChatMessage({ message }: ChatMessageProps) {
+function ParagraphText({ text }: { text: string }) {
+  const lines = text.split('\n');
+  return (
+    <p className="chat-prose__p">
+      {lines.map((line, index) => (
+        <span key={index}>
+          {index > 0 ? <br /> : null}
+          {line}
+        </span>
+      ))}
+    </p>
+  );
+}
+
+function ContentBlocks({ blocks }: { blocks: ChatContentBlock[] }) {
+  return (
+    <div className="chat-prose">
+      {blocks.map((block, index) => {
+        if (block.type === 'paragraph') {
+          return <ParagraphText key={index} text={block.text} />;
+        }
+
+        if (block.type === 'list') {
+          const ListTag = block.ordered ? 'ol' : 'ul';
+          return (
+            <ListTag
+              key={index}
+              className={block.ordered ? 'chat-prose__ol' : 'chat-prose__ul'}
+            >
+              {block.items.map((item, itemIndex) => (
+                <li key={itemIndex}>{item}</li>
+              ))}
+            </ListTag>
+          );
+        }
+
+        return (
+          <ChatCodeBlock
+            key={index}
+            code={block.code}
+            language={block.language}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+export function ChatMessage({
+  message,
+  showIdentity = true,
+  actionsDisabled = false,
+  canRegenerate = false,
+  onRegenerate,
+}: ChatMessageProps) {
+  const isUser = message.role === 'user';
+  const clock = formatMessageClock(message.createdAt);
+  const blocks = isUser ? null : parseChatContent(message.content);
+
   return (
     <article
       className={`chat-message chat-message--${message.role}`}
       data-role={message.role}
     >
-      <p className="chat-message__role">
-        {message.role === 'user' ? 'Vous' : 'STELLA'}
-      </p>
-      <p className="chat-message__content">{message.content}</p>
+      {isUser ? (
+        <>
+          <p className="chat-message__content">{message.content}</p>
+          {clock ? (
+            <time className="chat-message__time" dateTime={message.createdAt}>
+              {clock}
+            </time>
+          ) : null}
+        </>
+      ) : (
+        <>
+          {showIdentity ? (
+            <div className="chat-message__identity">
+              <StellaMark size="sm" />
+              <span className="chat-message__role">STELLA</span>
+              {clock ? (
+                <time className="chat-message__time" dateTime={message.createdAt}>
+                  {clock}
+                </time>
+              ) : null}
+            </div>
+          ) : clock ? (
+            <time className="chat-message__time" dateTime={message.createdAt}>
+              {clock}
+            </time>
+          ) : null}
+
+          {blocks && blocks.length > 0 ? (
+            <ContentBlocks blocks={blocks} />
+          ) : (
+            <p className="chat-message__content">{message.content}</p>
+          )}
+
+          <ChatMessageActions
+            text={message.content}
+            disabled={actionsDisabled}
+            canRegenerate={canRegenerate}
+            onRegenerate={onRegenerate}
+          />
+        </>
+      )}
     </article>
   );
 }

@@ -59,7 +59,7 @@ Détail et checklists : [docs/versions/](docs/versions/).
 - **Base** : PostgreSQL + pgvector
 - **Infra** : Git, Docker, etc.
 
-Le choix définitif du modèle dépendra de ta machine (RAM / GPU / disque).
+Le choix définitif du modèle dépendra de ma machine (RAM / GPU / disque).
 
 ---
 

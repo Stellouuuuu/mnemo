@@ -1,0 +1,19 @@
+{
+  "url": "http://127.0.0.1:3001/api/chat",
+  "request_template": {"content": "{{PROMPT}}"},
+  "response_path": "$.response",
+  "tool_calls_path": "$.toolCalls",
+  "timeout": 60,
+  "min_interval": 0,
+  "allowed_tools": ["calculator", "list_documents", "search_documents", "delete_memory"],
+  "auth": {"type": "custom_headers", "headers": {"Cookie": "${MNEMO_COOKIE_A}"}},
+  "second_auth": {"type": "custom_headers", "headers": {"Cookie": "${MNEMO_COOKIE_B}"}},
+  "ingest": {
+    "url": "http://127.0.0.1:3001/api/documents",
+    "request_template": "{{DOCUMENT}}",
+    "content_type": "text/plain",
+    "headers": {"X-Filename": "{{DOC_ID}}.txt"},
+    "id_path": "$.document.id",
+    "delete_url": "http://127.0.0.1:3001/api/documents/{{DOC_ID}}"
+  }
+}

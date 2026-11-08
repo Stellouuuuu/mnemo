@@ -126,6 +126,8 @@ Chaque version est scannée avec [AegisAI](https://github.com/Stellouuuuu/aegisa
 
 Second audit (v0.5, avec outils) : les permissions côté serveur tiennent (35 demandes d'effacement provoquées par des injections, toutes bloquées), mais le score dépend du modèle, **74 sur 100 avec `mistral` 7B et 36 avec `qwen2.5:3b`**, qui utilise bien les outils mais obéit aux consignes cachées. Détails et compromis : [`docs/securite/audit-v0.5.md`](docs/securite/audit-v0.5.md).
 
+À chaque push, une [intégration continue](.github/workflows/security.yml) rejoue AegisAI contre un faux modèle qui obéit à tout, pour vérifier que les protections du serveur (accord pour les outils, isolation entre comptes) tiennent quoi que fasse le modèle. Le contrôle a été vérifié par mutation : sabordé volontairement, il échoue.
+
 ## Outils (v0.5)
 
 Le modèle peut demander trois outils : une calculatrice, la recherche dans vos documents, et l'effacement d'un souvenir. **Il ne fait que demander : c'est le serveur qui décide.** Un outil inconnu ou des arguments invalides ne s'exécutent pas, l'identité vient toujours de la session (jamais d'un argument du modèle), et une action sensible reste en attente jusqu'au clic « Autoriser » de l'utilisateur. Tout est journalisé. Une consigne cachée dans un document ne peut donc pas effacer un souvenir : c'est testé.

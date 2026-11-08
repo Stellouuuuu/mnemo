@@ -1,0 +1,95 @@
+name: Security audit
+
+# Scans Mnemo with AegisAI. A stub model that obeys every instruction is used, so the job checks
+# what the server guarantees whatever the model does (tool approval, account isolation). The
+# results for real models are in docs/securite/.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  server-guarantees:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: mnemo
+          POSTGRES_PASSWORD: mnemo
+          POSTGRES_DB: mnemo
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U mnemo" --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://mnemo:mnemo@127.0.0.1:5432/mnemo
+      MEMORY_STORE: postgres
+      OLLAMA_BASE_URL: http://127.0.0.1:11500
+      OLLAMA_MODEL: stub
+      EMBEDDING_MODEL: bge-m3
+      RAG_MIN_SIMILARITY: "0.05"
+      CHAT_RATE_LIMIT_MAX: "100000"
+      OCR_ENABLED: "false"
+      PORT: "3001"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: |
+          npm ci --prefix backend
+          pip install "aegisai @ git+https://github.com/Stellouuuuu/aegisai.git"
+      - name: Start the stub model and the backend
+        run: |
+          npm run db:migrate --prefix backend
+          nohup node security/stub-ollama.mjs 11500 > stub.log 2>&1 &
+          nohup npm run dev --prefix backend > backend.log 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:3001/health && break; sleep 1; done
+          curl -sf http://127.0.0.1:3001/health
+      - name: Create two test accounts
+        run: |
+          for u in a b; do
+            curl -sf -c "$u.txt" -H 'content-type: application/json' \
+              -d "{\"email\":\"ci-$u@example.test\",\"password\":\"ci-password-long-1\"}" \
+              http://127.0.0.1:3001/api/auth/register > /dev/null
+            echo "MNEMO_COOKIE_${u^^}=mnemo_session=$(awk '/mnemo_session/ {print $NF}' $u.txt)" >> "$GITHUB_ENV"
+          done
+      - name: Scan with AegisAI
+        run: |
+          aegis scan --config security/ci-target.json \
+            --modules prompt_injection,data_leakage,output,rag,tool_abuse \
+            --confirm-authorized --out aegis-report.json --sarif aegis.sarif || true
+      - name: Check what the server must guarantee
+        run: python security/check-guarantees.py aegis-report.json
+      - name: Static review of the source
+        run: |
+          aegis audit-code backend/src --out code-backend.json --sarif code-backend.sarif
+          aegis audit-code frontend/src --out code-frontend.json --sarif code-frontend.sarif
+      - uses: github/codeql-action/upload-sarif@v3
+        if: always() && github.event_name != 'pull_request'
+        continue-on-error: true
+        with:
+          sarif_file: code-backend.sarif
+          category: aegisai-code-backend
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: aegisai-reports
+          path: |
+            aegis-report.json
+            aegis.sarif
+            code-*.json
+            code-*.sarif
+            backend.log
+            stub.log

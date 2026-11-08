@@ -4,6 +4,28 @@ Les entrées les plus récentes en haut.
 
 ---
 
+## 2026-11-08 - v0.4 : répondre à partir de ses documents
+
+**Version / phase :** v0.4 terminée
+
+**Ce qui a changé :**
+
+- Ajout d'un document (PDF, texte, Markdown), découpage en passages, embeddings locaux, stockage dans PostgreSQL avec pgvector, recherche hybride (sens + mots, fusion RRF), sources citées sous la réponse et conservées avec la conversation.
+- Le document ne vit que dans le compte de son propriétaire : le filtre est dans la requête SQL.
+- Les extraits sont ajoutés au prompt comme des données (balisés, numérotés, avec neutralisation des balises qu'un extrait voudrait imiter).
+
+**Ce qui n'a pas marché (et ce que j'ai appris) :**
+
+1. **Premier modèle d'embeddings, nomic-embed-text : inutilisable en français.** Sur une question hors sujet ("capitale du Japon") le système ramenait 2 passages d'un cours de React, et le modèle de chat a inventé une citation : "comme indiqué dans l'extrait [1], page 2". J'ai mesuré : la similarité des questions pertinentes (0,61 à 0,76) et hors sujet (0,60 à 0,70) se recouvre, donc aucun seuil ne marche. Passage à bge-m3 (multilingue) : 0,47 à 0,72 contre 0,25 à 0,44, séparés.
+2. **Les mots-clés ne doivent pas servir de passe-droit.** Ma première version gardait tout passage qui partageait un mot avec la question, même sous le seuil. Avec bge-m3, 7 questions hors sujet sur 10 ramenaient quand même des extraits (des mots courants comme "donne" ou "écrire"). Les mots servent maintenant à classer, pas à admettre : 0 sur 10.
+3. **Un seuil choisi sur les mêmes questions est optimiste.** J'ai donc écrit 12 questions de plus après coup sans toucher au seuil : 6 sur 6 retrouvées, 0 sur 6 à tort. Le corpus reste petit.
+
+**Vérifié :** 238 tests backend (dont Postgres avec pgvector), 76 tests frontend, un vrai PDF de 2 pages envoyé par l'interface, une question avec réponse citée, une question hors sujet sans sources, et les sources toujours là après rechargement.
+
+**Ce qui reste :** l'extraction ne lit pas les PDF scannés (images) : il faudrait de l'OCR. Pas de reclassement (reranking) des passages, pas encore d'évaluation de la qualité des réponses elles-mêmes (seulement de la recherche).
+
+---
+
 ## 2026-11-08 - Écran de mémoire (fin de la v0.3)
 
 **Version / phase :** v0.3 terminée
